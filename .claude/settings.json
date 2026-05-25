@@ -1,0 +1,35 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -s -I -H \"Origin: http://localhost:4200\" http://localhost:8000/health)",
+      "Bash(netstat -ano)",
+      "Bash(cmd /c \"taskkill /PID 11120 /F\")",
+      "Bash(cmd /c \"for /f \\\\\"tokens=5\\\\\" %a in \\('netstat -ano ^| findstr :4200'\\) do taskkill /PID %a /F\")",
+      "Bash(cmd /c \"taskkill /PID 11120 /F 2>&1\")",
+      "Bash(powershell -Command \"Stop-Process -Id 11120 -Force\")",
+      "Bash(curl -s http://localhost:4200 -o /dev/null -w \"%{http_code}\")",
+      "Bash(curl -s http://localhost:4200/api/health)",
+      "Bash(powershell -Command ':*)",
+      "Bash(\"C:/Users/MAHMOUD/AppData/Local/Microsoft/WindowsApps/PythonSoftwareFoundation.Python.3.12_qbz5n2kfra8p0/python3.12.exe\" -m uvicorn main:app --host 0.0.0.0 --port 8000)",
+      "Bash(powershell -Command 'Get-NetTCPConnection -LocalPort 8000 -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess | Sort-Object -Unique | ForEach-Object { Stop-Process -Id $_ -Force -ErrorAction SilentlyContinue }')",
+      "Bash(\"C:/Users/MAHMOUD/AppData/Local/Microsoft/WindowsApps/PythonSoftwareFoundation.Python.3.12_qbz5n2kfra8p0/python3.12.exe\" -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload)",
+      "Bash(\"C:/Users/MAHMOUD/AppData/Local/Microsoft/WindowsApps/PythonSoftwareFoundation.Python.3.12_qbz5n2kfra8p0/python3.12.exe\" -m pip install pdfplumber pytesseract Pillow)",
+      "Bash(powershell -Command 'Get-NetTCPConnection -LocalPort 4200 -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess | Sort-Object -Unique | ForEach-Object { Stop-Process -Id $_ -Force -ErrorAction SilentlyContinue }')",
+      "Bash(cp \"C:/Users/MAHMOUD/Downloads/DEVIS-SPARKY-2.pdf\" \"C:/Sparky/backend/test_devis.pdf\")",
+      "Bash(echo \"Not in Downloads\" ls \"C:/Users/MAHMOUD/Desktop/\"*.pdf)",
+      "Read(//c/Users/MAHMOUD/Downloads/**)",
+      "Bash(where tesseract:*)",
+      "Read(//c/Program Files/**)",
+      "Read(//c/Program Files \\(x86\\)/**)",
+      "Read(//c//**)",
+      "Read(//c/Users/MAHMOUD/AppData/Local/**)",
+      "Bash(C:/Users/MAHMOUD/AppData/Local/Microsoft/WindowsApps/PythonSoftwareFoundation.Python.3.12_qbz5n2kfra8p0/python3.12.exe -c 'import easyocr; print\\('\\\\''easyocr OK'\\\\''\\)')",
+      "Bash(C:/Users/MAHMOUD/AppData/Local/Microsoft/WindowsApps/PythonSoftwareFoundation.Python.3.12_qbz5n2kfra8p0/python3.12.exe -m pip install easyocr)",
+      "Bash(echo \"Installation easyocr démarrée en arrière-plan PID=$!\")",
+      "Bash(c:/Sparky/backend/venv/Scripts/python -c ':*)",
+      "Bash(venv/Scripts/python -c ':*)",
+      "Bash(\"C:/Users/MAHMOUD/AppData/Local/Microsoft/WindowsApps/PythonSoftwareFoundation.Python.3.12_qbz5n2kfra8p0/python3.12.exe\" -c \"import mistralai; print\\('mistralai OK:', mistralai.__version__\\)\")",
+      "Bash(\"C:/Users/MAHMOUD/AppData/Local/Microsoft/WindowsApps/PythonSoftwareFoundation.Python.3.12_qbz5n2kfra8p0/python3.12.exe\" -m pip install \"mistralai==1.5.0\")"
+    ]
+  }
+}

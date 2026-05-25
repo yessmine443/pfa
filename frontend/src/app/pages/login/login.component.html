@@ -1,0 +1,103 @@
+<!-- ═══════════════════════════ SPLASH ═══════════════════════════ -->
+<div class="splash" *ngIf="splashVisible" [class.fading]="splashFading">
+  <div class="splash-content">
+    <img src="assets/logo.png" alt="SPARKY" class="splash-logo">
+    <div class="splash-dots">
+      <span></span><span></span><span></span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════ LOGIN ════════════════════════════ -->
+<div class="login-page" [class.visible]="!splashVisible">
+
+  <!-- Left panel -->
+  <div class="left-panel">
+    <div class="left-content">
+      <img src="assets/logo.png" alt="SPARKY" class="panel-logo">
+      <h1 class="panel-title">Solutions Photovoltaïques</h1>
+      <p class="panel-sub">Gérez vos documents intelligemment grâce à l'IA Mistral</p>
+
+      <div class="features">
+        <div class="feature-item">
+          <div class="feat-icon"><mat-icon>auto_awesome</mat-icon></div>
+          <div>
+            <p class="feat-title">Extraction IA</p>
+            <p class="feat-desc">Mistral OCR extrait automatiquement toutes les données</p>
+          </div>
+        </div>
+        <div class="feature-item">
+          <div class="feat-icon"><mat-icon>compare_arrows</mat-icon></div>
+          <div>
+            <p class="feat-title">Comparateur des prix</p>
+            <p class="feat-desc">Identifiez le meilleur fournisseur instantanément</p>
+          </div>
+        </div>
+        <div class="feature-item">
+          <div class="feat-icon"><mat-icon>download</mat-icon></div>
+          <div>
+            <p class="feat-title">Export Excel</p>
+            <p class="feat-desc">Exportez vos articles avec mise en forme automatique</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right panel — form -->
+  <div class="right-panel">
+    <div class="form-card">
+
+      <div class="form-header">
+        <img src="assets/logo_sun.png" alt="SPARKY" class="form-logo">
+        <h2>Connexion</h2>
+        <p>Accédez à votre espace SPARKY</p>
+      </div>
+
+      <form [formGroup]="form" (ngSubmit)="login()" class="form-body">
+
+        <!-- Email -->
+        <div class="field-group">
+          <label>Email</label>
+          <div class="input-wrap" [class.err]="form.get('email')?.invalid && form.get('email')?.touched">
+            <mat-icon>email</mat-icon>
+            <input type="email" formControlName="email" placeholder="admin@sparky.tn" autocomplete="email">
+          </div>
+          <span class="field-err" *ngIf="form.get('email')?.invalid && form.get('email')?.touched">
+            Email invalide
+          </span>
+        </div>
+
+        <!-- Password -->
+        <div class="field-group">
+          <label>Mot de passe</label>
+          <div class="input-wrap" [class.err]="form.get('password')?.invalid && form.get('password')?.touched">
+            <mat-icon>lock</mat-icon>
+            <input [type]="showPass() ? 'text' : 'password'" formControlName="password"
+                   placeholder="••••••••" autocomplete="current-password">
+            <button type="button" class="eye-btn" (click)="togglePass()">
+              <mat-icon>{{ showPass() ? 'visibility_off' : 'visibility' }}</mat-icon>
+            </button>
+          </div>
+          <span class="field-err" *ngIf="form.get('password')?.invalid && form.get('password')?.touched">
+            Mot de passe requis
+          </span>
+        </div>
+
+        <!-- Error -->
+        <div class="error-msg" *ngIf="error()">
+          <mat-icon>error_outline</mat-icon> {{ error() }}
+        </div>
+
+        <!-- Submit -->
+        <button type="submit" class="login-btn" [class.loading]="loading()" [disabled]="loading()">
+          <mat-icon *ngIf="!loading()">login</mat-icon>
+          <div *ngIf="loading()" class="btn-spinner"></div>
+          {{ loading() ? 'Connexion...' : 'Se connecter' }}
+        </button>
+
+      </form>
+    </div>
+  </div>
+
+</div>

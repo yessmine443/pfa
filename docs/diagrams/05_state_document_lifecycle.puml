@@ -1,0 +1,72 @@
+@startuml state_document_lifecycle
+' ============================================================
+' SPARKY - Diagramme d'états : cycle de vie d'un document
+' Style académique simplifié pour rapport PFE
+' ============================================================
+skinparam shadowing false
+skinparam roundCorner 8
+skinparam state {
+  BackgroundColor #FFFFFF
+  BorderColor #1F2A44
+  FontColor #1F2A44
+  FontSize 12
+  ArrowColor #444
+}
+skinparam noteBackgroundColor #FFF8DC
+skinparam noteBorderColor #C9A227
+skinparam noteFontSize 11
+
+title Diagramme d'états — Cycle de vie d'un document
+
+[*] --> EnAttente : Importer\nun document
+
+state "En attente" as EnAttente {
+  EnAttente : Le document est stocké
+  EnAttente : mais pas encore traité
+}
+
+EnAttente --> Classifie : Classification\nréussie
+EnAttente --> Erreur : Échec de\ntraitement
+
+state "Classifié" as Classifie {
+  Classifie : Le type est détecté
+  Classifie : (facture, devis, BL,\n  BC, avoir)
+}
+
+Classifie --> Extrait : Extraction\nréussie
+Classifie --> Erreur : Échec\nd'extraction
+
+state "Extrait" as Extrait {
+  Extrait : Les données sont
+  Extrait : enregistrées en base
+  Extrait : (montants, fournisseur,
+  Extrait :  articles)
+}
+
+Extrait --> [*] : Document\nconsultable
+Extrait --> Compare : Utilisé pour\ncomparer les prix
+Extrait --> Exporte : Exporté\nen Excel
+
+state "Comparé" as Compare {
+  Compare : Inclus dans le tableau
+  Compare : comparatif des prix
+}
+
+Compare --> Extrait : Retour à l'état\nconsultable
+
+state "Exporté" as Exporte {
+  Exporte : Fichier Excel
+  Exporte : généré
+}
+
+Exporte --> Extrait : Retour à l'état\nconsultable
+
+state "Erreur" as Erreur {
+  Erreur : Le traitement a
+  Erreur : échoué
+}
+
+Erreur --> EnAttente : Réessayer\nl'import
+Erreur --> [*]
+
+@enduml

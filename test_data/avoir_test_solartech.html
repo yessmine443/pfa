@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Avoir N° AV-2026-0042 — SOLARTECH TUNISIE</title>
+<style>
+  @page { size: A4; margin: 14mm 12mm; }
+  * { box-sizing: border-box; }
+  body { font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif; font-size: 11pt; color: #222; margin: 0; padding: 18px; background: #fff; }
+
+  .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 3px solid #d32f2f; padding-bottom: 14px; margin-bottom: 18px; }
+  .brand { display: flex; align-items: center; gap: 14px; }
+  .logo { width: 78px; height: 78px; background: #1a3a6b; border-radius: 14px; display: flex; align-items: center; justify-content: center; box-shadow: 0 3px 10px rgba(26,58,107,.25); }
+  .company-name { font-size: 22pt; font-weight: 800; color: #1a3a6b; letter-spacing: .5px; line-height: 1; }
+  .company-tag  { font-size: 9pt; color: #d32f2f; font-weight: 600; letter-spacing: 1.2px; margin-top: 4px; }
+  .company-info { font-size: 8.5pt; color: #555; line-height: 1.5; margin-top: 6px; }
+
+  .doc-meta { border: 2px solid #d32f2f; border-radius: 8px; padding: 12px 16px; min-width: 240px; background: #ffebee; }
+  .doc-title { font-size: 22pt; font-weight: 800; color: #d32f2f; text-align: center; margin: 0 0 8px; letter-spacing: 1px; }
+  .doc-title small { display: block; font-size: 9pt; color: #666; font-weight: 500; letter-spacing: 0; margin-top: 2px; }
+  .doc-meta table { width: 100%; font-size: 9pt; border-collapse: collapse; }
+  .doc-meta td { padding: 3px 0; }
+  .doc-meta .lbl { color: #777; font-weight: 600; }
+  .doc-meta .val { text-align: right; font-weight: 700; color: #1a3a6b; }
+
+  .client-block { background: #f7f9fc; border-left: 4px solid #d32f2f; padding: 10px 14px; margin-bottom: 16px; border-radius: 0 6px 6px 0; }
+  .client-block .lbl { color: #777; font-size: 9pt; font-weight: 600; margin-bottom: 3px; text-transform: uppercase; }
+  .client-block .name { font-size: 13pt; font-weight: 700; color: #1a3a6b; }
+  .client-block .addr { font-size: 9.5pt; color: #555; margin-top: 3px; }
+
+  .reason { background: #fff8e1; border-left: 4px solid #f5b400; padding: 12px 16px; margin-bottom: 16px; border-radius: 0 6px 6px 0; }
+  .reason h3 { margin: 0 0 8px; color: #1a3a6b; font-size: 11pt; }
+  .reason p { margin: 4px 0; font-size: 10pt; color: #444; line-height: 1.6; }
+  .reason .ref { display: inline-block; background: #1a3a6b; color: #fff; padding: 2px 10px; border-radius: 4px; font-family: monospace; font-size: 10pt; margin-left: 6px; }
+
+  table.items { width: 100%; border-collapse: collapse; margin-bottom: 12px; }
+  table.items thead th { background: #d32f2f; color: #fff; font-size: 9pt; font-weight: 700; text-transform: uppercase; padding: 8px 6px; border: 1px solid #d32f2f; }
+  table.items tbody td { border: 1px solid #d8dde6; padding: 7px 8px; font-size: 9.5pt; vertical-align: top; }
+  table.items tbody tr:nth-child(even) { background: #fafbfd; }
+  .num { text-align: right; font-variant-numeric: tabular-nums; color: #d32f2f; font-weight: 600; }
+  .ctr { text-align: center; }
+
+  .totals-row { display: flex; gap: 14px; margin-top: 8px; }
+  .tva-table { border-collapse: collapse; font-size: 9.5pt; }
+  .tva-table th, .tva-table td { border: 1px solid #d8dde6; padding: 6px 12px; }
+  .tva-table th { background: #f0f3f9; color: #1a3a6b; font-weight: 700; }
+  .tva-table td.num { color: #d32f2f; }
+  .totals-spacer { flex: 1; }
+  .totals-table { border-collapse: collapse; font-size: 9.5pt; flex: 0 0 320px; }
+  .totals-table td { padding: 7px 12px; border: 1px solid #d8dde6; }
+  .totals-table td.lbl { background: #f0f3f9; font-weight: 700; color: #1a3a6b; width: 55%; }
+  .totals-table td.val { text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; color: #d32f2f; }
+  .totals-table tr.grand td.lbl { background: #d32f2f; color: #fff; font-size: 11pt; }
+  .totals-table tr.grand td.val { background: #ffebee; color: #d32f2f; font-size: 13pt; font-weight: 800; }
+
+  .lettre { margin-top: 16px; padding: 10px 14px; background: #ffebee; border-left: 4px solid #d32f2f; font-size: 9.5pt; font-style: italic; color: #333; }
+  .lettre strong { font-style: normal; color: #1a3a6b; }
+
+  .modalite { margin-top: 16px; padding: 10px 14px; background: #f7f9fc; border-radius: 6px; font-size: 9.5pt; color: #444; }
+  .modalite strong { color: #1a3a6b; }
+
+  .footer { margin-top: 20px; border-top: 2px solid #1a3a6b; padding-top: 10px; display: flex; justify-content: space-between; font-size: 8pt; color: #777; }
+  .signature { text-align: center; margin-top: 20px; font-size: 9pt; color: #555; }
+  .signature .line { width: 180px; border-top: 1px solid #999; margin: 50px auto 6px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="brand">
+    <div class="logo">
+      <svg width="56" height="56" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="32" cy="32" r="11" fill="#f5b400"/>
+        <g stroke="#f5b400" stroke-width="3" stroke-linecap="round">
+          <line x1="32" y1="6" x2="32" y2="14"/><line x1="32" y1="50" x2="32" y2="58"/>
+          <line x1="6" y1="32" x2="14" y2="32"/><line x1="50" y1="32" x2="58" y2="32"/>
+          <line x1="13" y1="13" x2="19" y2="19"/><line x1="45" y1="45" x2="51" y2="51"/>
+          <line x1="51" y1="13" x2="45" y2="19"/><line x1="19" y1="45" x2="13" y2="51"/>
+        </g>
+      </svg>
+    </div>
+    <div>
+      <div class="company-name">SOLARTECH</div>
+      <div class="company-tag">ÉNERGIE SOLAIRE TUNISIE</div>
+      <div class="company-info">
+        Z.I. Sidi Daoud, Route de la Marsa<br>
+        2046 La Marsa, Tunis — Tunisie<br>
+        Tél: +216 71 234 567 — contact@solartech.tn<br>
+        MF: 1234567/A/B/M/000
+      </div>
+    </div>
+  </div>
+
+  <div class="doc-meta">
+    <div class="doc-title">AVOIR<small>Note de crédit</small></div>
+    <table>
+      <tr><td class="lbl">N° Avoir</td><td class="val">AV-2026-0042</td></tr>
+      <tr><td class="lbl">Date émission</td><td class="val">29/04/2026</td></tr>
+      <tr><td class="lbl">Facture associée</td><td class="val">FA-2026/00428</td></tr>
+      <tr><td class="lbl">Code client</td><td class="val">CLT-0089</td></tr>
+    </table>
+  </div>
+</div>
+
+<div class="client-block">
+  <div class="lbl">Établi en faveur de</div>
+  <div class="name">M. AHMED BEN SALEM</div>
+  <div class="addr">
+    Avenue Habib Bourguiba, Résidence El Yasmine, Apt B12<br>
+    3000 Sfax — Tunisie<br>
+    Tél: +216 98 765 432 — ahmed.bensalem@gmail.com<br>
+    MF: 9876543/X/A/M/000
+  </div>
+</div>
+
+<div class="reason">
+  <h3>Motif de l'avoir</h3>
+  <p>
+    Suite à la livraison du 26/04/2026 (BL référence <span class="ref">BL-2026-0192</span>),
+    un onduleur FOXESS H3-Pro 5kW présente un défaut de fabrication signalé par le client.
+    Après expertise du SAV, l'unité a été remplacée gratuitement.
+  </p>
+  <p>
+    Cet avoir vient annuler la ligne correspondante de la facture
+    <span class="ref">FA-2026/00428</span> et donne droit au remboursement des sommes suivantes.
+  </p>
+</div>
+
+<table class="items">
+  <thead>
+    <tr>
+      <th style="width:4%">Ord.</th>
+      <th style="width:14%">Référence</th>
+      <th>Désignation</th>
+      <th style="width:6%">Qté</th>
+      <th style="width:11%">P.U. HT</th>
+      <th style="width:6%">Rem. %</th>
+      <th style="width:11%">Net HT</th>
+      <th style="width:6%">TVA %</th>
+      <th style="width:11%">Net TTC</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="ctr">1</td>
+      <td class="ctr">OND-FX5K</td>
+      <td>Onduleur hybride FOXESS H3-Pro 5kW Triphasé — Annulation pour défaut de fabrication</td>
+      <td class="ctr">1</td>
+      <td class="num">−3 250.000</td>
+      <td class="ctr">5</td>
+      <td class="num">−3 087.500</td>
+      <td class="ctr">7.00</td>
+      <td class="num">−3 303.625</td>
+    </tr>
+    <tr>
+      <td class="ctr">2</td>
+      <td class="ctr">SRV-DEPL</td>
+      <td>Frais de déplacement technicien SAV — Sfax</td>
+      <td class="ctr">1</td>
+      <td class="num">−120.000</td>
+      <td class="ctr">0</td>
+      <td class="num">−120.000</td>
+      <td class="ctr">19.00</td>
+      <td class="num">−142.800</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="totals-row">
+  <table class="tva-table">
+    <thead>
+      <tr><th>TVA</th><th>Base TVA</th><th>Montant TVA</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="num">7.00 %</td>
+        <td class="num">−3 087.500</td>
+        <td class="num">−216.125</td>
+      </tr>
+      <tr>
+        <td class="num">19.00 %</td>
+        <td class="num">−120.000</td>
+        <td class="num">−22.800</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="totals-spacer"></div>
+
+  <table class="totals-table">
+    <tr><td class="lbl">Total HT</td><td class="val">−3 207.500 TND</td></tr>
+    <tr><td class="lbl">Total TVA</td><td class="val">−238.925 TND</td></tr>
+    <tr class="grand"><td class="lbl">TOTAL AVOIR</td><td class="val">−3 446.425 TND</td></tr>
+  </table>
+</div>
+
+<div class="lettre">
+  Arrêté le présent avoir à la somme de :
+  <strong>trois mille quatre cent quarante-six dinars tunisiens et quatre cent vingt-cinq millimes</strong>
+  en faveur de M. Ahmed Ben Salem.
+</div>
+
+<div class="modalite">
+  <strong>Modalités de remboursement :</strong>
+  Le montant de cet avoir sera <strong>déduit de la prochaine facture</strong> émise au client,
+  ou remboursé par <strong>virement bancaire</strong> sur demande, dans un délai maximum de 15 jours ouvrables.
+</div>
+
+<div class="signature">
+  Cachet et signature SOLARTECH
+  <div class="line"></div>
+  Mahmoud BEN AMOR — Gérant
+</div>
+
+<div class="footer">
+  <div>SOLARTECH SARL · MF: 1234567/A/B/M/000 · RIB: 04 700 7000 0000 1969 739 (BIAT)</div>
+  <div>Page 1/1 · AV-2026-0042</div>
+</div>
+
+</body>
+</html>

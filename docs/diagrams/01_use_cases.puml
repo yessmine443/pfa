@@ -1,0 +1,110 @@
+@startuml use_cases_sparky
+' ============================================================
+' SPARKY - Diagramme des cas d'utilisation (version étudiante)
+' Acteur unique : Administrateur (utilise toutes les fonctionnalités)
+' ============================================================
+left to right direction
+skinparam packageStyle rectangle
+skinparam actorStyle awesome
+skinparam shadowing false
+skinparam roundCorner 6
+skinparam usecaseBackgroundColor #FFFFFF
+skinparam usecaseBorderColor #1F2A44
+skinparam usecaseFontSize 12
+skinparam packageBackgroundColor #F8F8F8
+skinparam packageBorderColor #1F2A44
+skinparam actorBackgroundColor #FFFFFF
+skinparam actorBorderColor #1F2A44
+skinparam actorFontSize 13
+skinparam actorFontStyle bold
+skinparam noteBackgroundColor #FFF8DC
+skinparam noteBorderColor #C9A227
+skinparam noteFontSize 11
+skinparam ArrowColor #444
+
+title Diagramme des cas d'utilisation — Application SPARKY
+
+' ─── Acteur principal ───────────────────────────────────────
+actor "Administrateur" as Admin
+note bottom of Admin
+  Utilisateur unique du
+  système SPARKY
+  Gère et utilise toutes
+  les fonctionnalités
+end note
+
+' ─── Acteurs secondaires (systèmes externes) ────────────────
+actor "Mistral AI" as Mistral
+note bottom of Mistral
+  Service d'intelligence
+  artificielle (OCR)
+end note
+
+actor "Base de données" as DB
+note bottom of DB
+  PostgreSQL :
+  stockage des données
+end note
+
+' ─── Système ────────────────────────────────────────────────
+rectangle "Système SPARKY" {
+
+  package "Authentification" {
+    usecase "S'authentifier" as UC_Login
+    usecase "Créer un compte" as UC_Register
+  }
+
+  package "Gestion des documents" {
+    usecase "Scanner un document" as UC_Scan
+    usecase "Classifier le document" as UC_Classify
+    usecase "Extraire les données" as UC_Extract
+    usecase "Consulter les documents" as UC_List
+    usecase "Exporter en Excel" as UC_Export
+  }
+
+  package "Gestion des articles" {
+    usecase "Importer les articles" as UC_Import
+    usecase "Consulter le stock" as UC_Stock
+  }
+
+  package "Comparateur de prix" {
+    usecase "Comparer les devis" as UC_Compare
+  }
+
+  package "Tableau de bord" {
+    usecase "Visualiser le tableau\nde bord" as UC_Dashboard
+  }
+
+  package "Administration" {
+    usecase "Gérer les utilisateurs" as UC_ManageUsers
+  }
+}
+
+' ─── Relations Administrateur (toutes les fonctionnalités) ──
+Admin --> UC_Login
+Admin --> UC_Register
+Admin --> UC_Scan
+Admin --> UC_List
+Admin --> UC_Export
+Admin --> UC_Import
+Admin --> UC_Stock
+Admin --> UC_Compare
+Admin --> UC_Dashboard
+Admin --> UC_ManageUsers
+
+' ─── Inclusions / Extensions ────────────────────────────────
+UC_Scan    ..> UC_Classify : <<include>>
+UC_Scan    ..> UC_Extract  : <<include>>
+UC_List    ..> UC_Export   : <<extend>>
+UC_Compare ..> UC_Stock    : <<include>>
+
+' ─── Acteurs secondaires ────────────────────────────────────
+UC_Classify --> Mistral
+UC_Extract  --> Mistral
+UC_List     --> DB
+UC_Stock    --> DB
+UC_Compare  --> DB
+UC_Login    --> DB
+UC_ManageUsers --> DB
+
+@enduml

@@ -1,0 +1,105 @@
+version: '3.8'
+
+services:
+
+  # ── PostgreSQL Database ──────────────────────────────────────────
+  sparky-db:
+    image: postgres:16-alpine
+    container_name: sparky-db
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: sparky_db
+      POSTGRES_USER: sparky
+      POSTGRES_PASSWORD: sparky_pass
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+      - ./database/grant_sparky.sql:/docker-entrypoint-initdb.d/02-grants.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sparky -d sparky_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+    networks:
+      - sparky-network
+
+  # ── SPARKY Backend API ───────────────────────────────────────────
+  sparky-api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: sparky-api
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+      - ./database:/app/database
+    environment:
+      - APP_ENV=development
+      - APP_HOST=0.0.0.0
+      - APP_PORT=8000
+      - SECRET_KEY=sparky-dev-secret-key-2026
+      - DATABASE_URL=postgresql+asyncpg://sparky:sparky_pass@sparky-db:5432/sparky_db
+      - MISTRAL_API_KEY=${MISTRAL_API_KEY}
+      - MISTRAL_MODEL=${MISTRAL_MODEL:-mistral-small-latest}
+      - MISTRAL_VISION_MODEL=${MISTRAL_VISION_MODEL:-pixtral-12b-2409}
+      - N8N_WEBHOOK_URL=http://sparky-n8n:5678/webhook/sparky/notify
+      - N8N_WEBHOOK_SECRET=sparky-secret
+      - ALLOWED_ORIGINS=["http://localhost:4200","http://localhost:80","http://localhost"]
+    depends_on:
+      sparky-db:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - sparky-network
+
+  # ── SPARKY Frontend (Angular + Nginx) ────────────────────────────
+  sparky-frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: sparky-frontend
+    ports:
+      - "4200:80"
+    depends_on:
+      - sparky-api
+    restart: unless-stopped
+    networks:
+      - sparky-network
+
+  # ── n8n Workflow Automation ──────────────────────────────────────
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: sparky-n8n
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=admin
+      - N8N_BASIC_AUTH_PASSWORD=sparky2026
+      - N8N_HOST=localhost
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      - WEBHOOK_URL=http://localhost:5678/
+      - GENERIC_TIMEZONE=Africa/Tunis
+      # Variables accessibles dans les workflows n8n
+      - SPARKY_API_URL=http://sparky-api:8000
+      - ALERT_EMAIL=${ALERT_EMAIL:-admin@sparky.tn}
+    volumes:
+      - n8n_data:/home/node/.n8n
+      - ./n8n/workflows:/workflows
+    depends_on:
+      - sparky-api
+    restart: unless-stopped
+    networks:
+      - sparky-network
+
+networks:
+  sparky-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  n8n_data:

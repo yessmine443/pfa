@@ -1,0 +1,71 @@
+@startuml sequence_price_comparison
+' ============================================================
+' SPARKY - Diagramme de séquence : Comparaison de prix
+' Style académique simplifié pour rapport PFE
+' ============================================================
+skinparam shadowing false
+skinparam roundCorner 6
+skinparam sequenceArrowThickness 1.2
+skinparam participantBackgroundColor #FFFFFF
+skinparam participantBorderColor #1F2A44
+skinparam participantFontStyle bold
+skinparam participantFontSize 12
+skinparam actorBackgroundColor #FFFFFF
+skinparam actorBorderColor #1F2A44
+skinparam actorFontStyle bold
+skinparam actorFontSize 13
+skinparam noteBackgroundColor #FFF8DC
+skinparam noteBorderColor #C9A227
+skinparam noteFontSize 11
+skinparam sequenceLifeLineBorderColor #999
+skinparam ArrowColor #444
+
+title Diagramme de séquence — Comparaison de prix entre fournisseurs
+
+actor "Administrateur" as U
+participant "Application\nWeb" as FE
+participant "Serveur\nSPARKY" as API
+participant "Base de\ndonnées" as DB
+
+note over U
+  Utilisateur unique
+  du système
+end note
+
+note over FE
+  Interface
+  Angular
+end note
+
+note over API
+  Backend FastAPI
+  (Python)
+end note
+
+note over DB
+  PostgreSQL :
+  articles + fournisseurs
+end note
+
+== 1. Sélection des devis à comparer ==
+U  -> FE : Choisir plusieurs devis\n(déjà scannés)
+FE -> API : Demander le tableau comparatif
+activate API
+
+== 2. Récupération des données ==
+API -> DB : Lire les articles et\nles prix par fournisseur
+activate DB
+DB --> API : Liste des articles\net des prix
+deactivate DB
+
+== 3. Calcul du meilleur prix ==
+API -> API : Pour chaque article :\n- meilleur prix = minimum\n- écart en pourcentage\n- repérage du fournisseur\n  le moins cher
+
+API --> FE : Tableau comparatif
+deactivate API
+
+== 4. Affichage du résultat ==
+FE -> FE : Regrouper par article\net par fournisseur
+FE --> U : Tableau comparatif :\nmeilleur prix surligné
+
+@enduml

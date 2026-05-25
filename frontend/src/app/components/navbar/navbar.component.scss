@@ -1,0 +1,38 @@
+.navbar {
+  background: #1a1a2e;
+  color: white;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+
+  .navbar-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    .navbar-sun {
+      height: 40px;
+      object-fit: contain;
+    }
+
+    .navbar-titre {
+      height: 30px;
+      object-fit: contain;
+    }
+  }
+
+  .back-btn {
+    color: #f5c518;
+    margin-right: 4px;
+  }
+
+  .spacer { flex: 1; }
+
+  .scan-btn {
+    background: #f5c518;
+    color: #1a1a2e;
+    font-weight: 600;
+    mat-icon { margin-right: 4px; }
+  }
+}

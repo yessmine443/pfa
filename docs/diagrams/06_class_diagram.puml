@@ -1,0 +1,183 @@
+@startuml class_diagram_sparky
+' ============================================================
+' SPARKY - Diagramme de classes (version étudiante)
+' Style académique simplifié pour rapport PFE
+' Source : database/schema.sql
+' ============================================================
+skinparam shadowing false
+skinparam roundCorner 6
+skinparam classBackgroundColor #FFFFFF
+skinparam classBorderColor #1F2A44
+skinparam classFontStyle bold
+skinparam classFontSize 12
+skinparam classAttributeFontSize 11
+skinparam classAttributeIconSize 0
+skinparam ArrowColor #444
+skinparam packageBackgroundColor #F8F8F8
+skinparam packageBorderColor #1F2A44
+skinparam noteBackgroundColor #FFF8DC
+skinparam noteBorderColor #C9A227
+skinparam noteFontSize 11
+
+title Diagramme de classes — Application SPARKY
+
+' ─── Énumérations ───────────────────────────────────────────
+enum TypeDocument {
+  facture
+  devis
+  bon_livraison
+  bon_commande
+  avoir
+}
+
+enum StatutDocument {
+  en_attente
+  classifié
+  extrait
+  erreur
+}
+
+enum TypeMouvement {
+  entrée
+  sortie
+  correction
+}
+
+' ─── Utilisateur ────────────────────────────────────────────
+class Utilisateur {
+  - id : UUID
+  - email : String
+  - motDePasse : String
+  - nom : String
+  - rôle : String
+  --
+  + seConnecter()
+  + seDéconnecter()
+}
+
+' ─── Fournisseur ────────────────────────────────────────────
+class Fournisseur {
+  - id : UUID
+  - nom : String
+  - siret : String
+  - adresse : String
+  - email : String
+  - téléphone : String
+}
+
+' ─── Document (classe abstraite) ────────────────────────────
+abstract class Document {
+  - id : UUID
+  - nomFichier : String
+  - urlStockage : String
+  - typeDocument : TypeDocument
+  - statut : StatutDocument
+  - scoreConfiance : Décimal
+  - dateCréation : Date
+  --
+  + classifier()
+  + extraire()
+}
+
+class Facture {
+  - numéroFacture : String
+  - dateFacture : Date
+  - dateÉchéance : Date
+  - montantHT : Décimal
+  - montantTVA : Décimal
+  - montantTTC : Décimal
+}
+
+class Devis {
+  - numéroDevis : String
+  - dateDevis : Date
+  - dateValidité : Date
+  - montantHT : Décimal
+  - montantTTC : Décimal
+}
+
+class BonLivraison {
+  - numéroBL : String
+  - dateLivraison : Date
+  - transporteur : String
+}
+
+class BonCommande {
+  - numéroBC : String
+  - dateCommande : Date
+  - montantTTC : Décimal
+}
+
+class Avoir {
+  - numéroAvoir : String
+  - dateAvoir : Date
+  - montantTTC : Décimal
+  - motif : String
+}
+
+' ─── Ligne de document ──────────────────────────────────────
+class LigneDocument {
+  - id : UUID
+  - référence : String
+  - désignation : String
+  - quantité : Décimal
+  - unité : String
+  - prixUnitaire : Décimal
+  - remise : Décimal
+  - montantHT : Décimal
+  - tauxTVA : Décimal
+}
+
+' ─── Article (catalogue normalisé) ──────────────────────────
+class Article {
+  - id : UUID
+  - référenceInterne : String
+  - nomNormalisé : String
+  - catégorie : String
+  - unitéMesure : String
+  - description : String
+  --
+  + calculerStock() : Décimal
+}
+
+class ArticleFournisseur {
+  - id : UUID
+  - référenceFournisseur : String
+  - nomFournisseur : String
+  - prixAchat : Décimal
+  - prixVente : Décimal
+  - marque : String
+}
+
+class MouvementStock {
+  - id : UUID
+  - typeMouvement : TypeMouvement
+  - quantité : Décimal
+  - prixUnitaire : Décimal
+  - dateMouvement : Date
+}
+
+' ─── Héritage Document ──────────────────────────────────────
+Document <|-- Facture
+Document <|-- Devis
+Document <|-- BonLivraison
+Document <|-- BonCommande
+Document <|-- Avoir
+
+' ─── Associations ───────────────────────────────────────────
+Utilisateur "1" --> "*" Document : scanne / gère
+Fournisseur "1" --> "*" Document : émet
+Document "1" *-- "*" LigneDocument : contient
+
+Article "1" -- "*" ArticleFournisseur : a pour alias
+Fournisseur "1" -- "*" ArticleFournisseur : propose
+Article "1" -- "*" MouvementStock : enregistre
+Fournisseur "0..1" -- "*" MouvementStock : provient de
+Document "0..1" -- "*" MouvementStock : justifie
+
+' ─── Liaison des énumérations à leurs classes ──────────────
+TypeDocument   ..> Document       : <<utilise>>\ntypeDocument
+StatutDocument ..> Document       : <<utilise>>\nstatut
+TypeMouvement  ..> MouvementStock : <<utilise>>\ntypeMouvement
+
+@enduml

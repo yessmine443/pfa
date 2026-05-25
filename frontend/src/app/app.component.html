@@ -1,0 +1,49 @@
+<!-- Login page: full screen without sidenav -->
+<router-outlet *ngIf="isLoginPage"></router-outlet>
+
+<mat-sidenav-container class="sidenav-container" *ngIf="!isLoginPage">
+
+  <!-- Sidebar -->
+  <mat-sidenav
+    #sidenav
+    mode="side"
+    [opened]="sidenavOpened"
+    class="sidenav">
+    <div class="sidenav-header">
+      <img src="assets/logo_sun.png" alt="SPARKY" class="logo-sun">
+      <img src="assets/titre.png" alt="SPARKY" class="logo-titre">
+    </div>
+
+    <mat-nav-list>
+      <a
+        mat-list-item
+        *ngFor="let item of navItems"
+        [routerLink]="item.route"
+        routerLinkActive="active-link"
+        [routerLinkActiveOptions]="{ exact: item.route === '/home' }">
+        <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
+        <span matListItemTitle>{{ item.label }}</span>
+      </a>
+    </mat-nav-list>
+
+    <div class="sidenav-footer">
+      <div class="api-status" [class.online]="apiOnline" [class.offline]="!apiOnline">
+        <mat-icon>{{ apiOnline ? 'cloud_done' : 'cloud_off' }}</mat-icon>
+        <span>API {{ apiOnline ? 'connectée' : 'hors ligne' }}</span>
+      </div>
+      <button class="logout-btn" (click)="logout()">
+        <mat-icon>logout</mat-icon>
+        <span>Déconnexion</span>
+      </button>
+    </div>
+  </mat-sidenav>
+
+  <!-- Main content -->
+  <mat-sidenav-content class="sidenav-content">
+    <app-navbar (toggleSidenav)="toggleSidenav()"></app-navbar>
+    <main class="main-content">
+      <router-outlet></router-outlet>
+    </main>
+  </mat-sidenav-content>
+
+</mat-sidenav-container>

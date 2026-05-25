@@ -1,0 +1,84 @@
+@startuml sequence_scan_extraction
+' ============================================================
+' SPARKY - Diagramme de séquence : Scan et extraction
+' Style académique simplifié pour rapport PFE
+' ============================================================
+skinparam shadowing false
+skinparam roundCorner 6
+skinparam sequenceArrowThickness 1.2
+skinparam participantBackgroundColor #FFFFFF
+skinparam participantBorderColor #1F2A44
+skinparam participantFontStyle bold
+skinparam participantFontSize 12
+skinparam actorBackgroundColor #FFFFFF
+skinparam actorBorderColor #1F2A44
+skinparam actorFontStyle bold
+skinparam actorFontSize 13
+skinparam noteBackgroundColor #FFF8DC
+skinparam noteBorderColor #C9A227
+skinparam noteFontSize 11
+skinparam sequenceLifeLineBorderColor #999
+skinparam ArrowColor #444
+
+title Diagramme de séquence — Scan et extraction d'un document
+
+actor "Administrateur" as U
+participant "Application\nWeb" as FE
+participant "Serveur\nSPARKY" as API
+participant "Mistral AI" as MS
+participant "Base de\ndonnées" as DB
+
+note over U
+  Utilisateur unique
+  du système
+end note
+
+note over FE
+  Interface
+  Angular
+end note
+
+note over API
+  Backend FastAPI
+  (Python)
+end note
+
+note over MS
+  Service IA
+  (OCR + classification)
+end note
+
+note over DB
+  PostgreSQL
+end note
+
+== 1. Importer un document ==
+U  -> FE : Sélectionner un fichier (PDF / image)
+FE -> API : Envoyer le document
+activate API
+
+== 2. Classifier le type de document ==
+API -> MS : Demander la classification
+activate MS
+MS --> API : Type identifié\n(facture, devis, BL, BC, avoir)
+deactivate MS
+
+== 3. Extraire les données ==
+API -> MS : Demander l'extraction des informations
+activate MS
+MS --> API : Données structurées\n(fournisseur, montants, articles)
+deactivate MS
+
+== 4. Enregistrer le résultat ==
+API -> DB : Sauvegarder le document\net ses données
+activate DB
+DB --> API : Confirmation
+deactivate DB
+
+API --> FE : Résultat du scan
+deactivate API
+
+== 5. Afficher le résultat ==
+FE --> U : Document scanné, type détecté,\narticles extraits
+
+@enduml

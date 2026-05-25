@@ -1,0 +1,66 @@
+@startuml pipeline_extraction_cascade
+' ============================================================
+' SPARKY - Pipeline d'extraction IA en cascade
+' Style académique simplifié pour rapport PFE
+' ============================================================
+skinparam shadowing false
+skinparam roundCorner 8
+skinparam ActivityBackgroundColor #FFFFFF
+skinparam ActivityBorderColor #1F2A44
+skinparam ActivityFontSize 12
+skinparam ActivityDiamondBackgroundColor #F8F8F8
+skinparam ActivityDiamondBorderColor #1F2A44
+skinparam ActivityDiamondFontSize 11
+skinparam ArrowColor #444
+skinparam noteBackgroundColor #FFF8DC
+skinparam noteBorderColor #C9A227
+skinparam noteFontSize 11
+
+title Pipeline d'extraction IA en cascade
+
+start
+
+:Document reçu\n(PDF ou image);
+
+note right
+  Entrée : fichier
+  + type de document
+  (facture, devis, BL,
+   BC, avoir)
+end note
+
+:**Étape 1 — Mistral AI**\n(OCR et lecture intelligente);
+
+note right
+  Service d'IA
+  qui lit le document
+  et retourne les données
+  au format structuré
+end note
+
+if (Données extraites\navec succès ?) then (oui)
+  :Résultat IA\nutilisé directement;
+  stop
+else (non)
+endif
+
+:**Étape 2 — Lecture du texte**\n(pdfplumber pour PDF\nou OCR Tesseract / EasyOCR\npour les images);
+
+note right
+  Extraction du texte brut
+  contenu dans le document
+end note
+
+:**Étape 3 — Analyse par règles**\n(expressions régulières);
+
+note right
+  Recherche des montants,
+  des dates, des lignes
+  d'articles dans le texte
+end note
+
+:Données extraites;
+
+stop
+
+@enduml

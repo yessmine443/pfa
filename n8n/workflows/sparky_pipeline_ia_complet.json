@@ -1,0 +1,204 @@
+{
+  "name": "SPARKY - Pipeline IA Complet",
+  "nodes": [
+
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "sparky/notify",
+        "responseMode": "onReceived",
+        "responseData": "allEntries",
+        "options": {}
+      },
+      "id": "node-webhook",
+      "name": "1. Reception Document",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 400],
+      "webhookId": "sparky-pipeline"
+    },
+
+    {
+      "parameters": {
+        "jsCode": "const body = $input.first().json.body || $input.first().json;\nconst mime = body.mime_type || 'application/pdf';\nconst isImage = mime.startsWith('image/');\nconst aiModel = isImage ? 'Mistral Vision (pixtral-12b-2409)' : 'Mistral Small (mistral-small-latest)';\nconsole.log('Document recu:', body.nom_fichier, '| Modele IA:', aiModel);\nreturn [{ json: {\n  nom_fichier: body.nom_fichier || 'document',\n  mime_type: mime,\n  ai_model: aiModel,\n  is_image: isImage,\n  received_at: new Date().toISOString(),\n  type_document: body.type_document,\n  fournisseur: body.fournisseur,\n  numero_document: body.numero_document,\n  date_document: body.date_document || '',\n  montant_ht: body.montant_ht || '0',\n  montant_tva: body.montant_tva || '0',\n  montant_ttc: body.montant_ttc || '0',\n  score_confiance: body.score_confiance || 0,\n  modele_ia: body.modele_ia || aiModel,\n  lignes: body.lignes || []\n}}];"
+      },
+      "id": "node-validate",
+      "name": "2. Validation et Detection Type",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [480, 400]
+    },
+
+    {
+      "parameters": {
+        "jsCode": "const d = $input.first().json;\nconst typeLabels = { 'facture':'Facture','devis':'Devis','bon_livraison':'Bon de Livraison','bon_commande':'Bon de Commande','avoir':'Avoir' };\nconst typeLabel = typeLabels[d.type_document] || d.type_document || 'Inconnu';\nconst confiance = Math.round((d.score_confiance||0)*100);\nconst niveau = confiance>=85?'Eleve':confiance>=60?'Moyen':'Faible';\nconsole.log('Classification Mistral AI:', typeLabel, confiance+'%');\nreturn [{ json: { ...d, type_label: typeLabel, confiance_pct: confiance, confiance_niveau: niveau } }];"
+      },
+      "id": "node-classify",
+      "name": "3. Labellisation Type Document",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [720, 400]
+    },
+
+    {
+      "parameters": {
+        "jsCode": "const d = $input.first().json;\nconsole.log('Resultat classification valide:', d.type_label, d.confiance_pct+'%', d.confiance_niveau);\nreturn [{ json: d }];"
+      },
+      "id": "node-classif-result",
+      "name": "4. Resultat Classification",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [960, 400]
+    },
+
+    {
+      "parameters": {
+        "jsCode": "const d = $input.first().json;\nconst lignes = d.lignes || [];\nconst totalTTC = lignes.reduce((acc,l) => acc + Number(l.montant_ttc||0), 0);\nconsole.log('Extraction Mistral AI:', lignes.length, 'articles | TTC:', totalTTC.toFixed(3), 'TND');\nreturn [{ json: { ...d, nb_lignes: lignes.length, montant_ttc: d.montant_ttc || totalTTC.toFixed(3), extraction_moteur: d.is_image ? 'Mistral Vision (pixtral-12b-2409)' : 'Mistral Small (mistral-small-latest)' } }];"
+      },
+      "id": "node-extract",
+      "name": "5. Calcul Total & Métadonnées Modèle",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1200, 400]
+    },
+
+    {
+      "parameters": {
+        "jsCode": "const d = $input.first().json;\nconsole.log('Extraction complete:', d.nb_lignes, 'articles | Moteur:', d.extraction_moteur);\nreturn [{ json: d }];"
+      },
+      "id": "node-extract-result",
+      "name": "6. Resultat Extraction",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1440, 400]
+    },
+
+    {
+      "parameters": {
+        "jsCode": "const d = $input.first().json;\nconst lignes = d.lignes || [];\nif (lignes.length === 0) {\n  return [{ json: {\n    document_id: d.received_at,\n    type_document: d.type_label,\n    fournisseur: d.fournisseur || 'N/A',\n    numero_document: d.numero_document || 'N/A',\n    date_document: d.date_document || '',\n    designation: '(aucune ligne)',\n    reference: '',\n    quantite: 0,\n    prix_unitaire: 0,\n    remise: 0,\n    tva: 0,\n    montant_ttc_ligne: 0,\n    montant_ht_total: d.montant_ht,\n    montant_ttc_total: d.montant_ttc,\n    nom_fichier: d.nom_fichier,\n    extracted_at: d.received_at\n  }}];\n}\nreturn lignes.map(l => ({\n  json: {\n    document_id: d.received_at,\n    type_document: d.type_label,\n    fournisseur: d.fournisseur || 'N/A',\n    numero_document: d.numero_document || 'N/A',\n    date_document: d.date_document || '',\n    designation: l.designation || 'N/A',\n    reference: l.reference || '',\n    quantite: Number(l.quantite || 0),\n    prix_unitaire: Number(l.prix_unitaire || 0),\n    remise: Number(l.remise || 0),\n    tva: Number(l.tva || 0),\n    montant_ttc_ligne: Number(l.montant_ttc || 0),\n    montant_ht_total: d.montant_ht,\n    montant_ttc_total: d.montant_ttc,\n    nom_fichier: d.nom_fichier,\n    extracted_at: d.received_at\n  }\n}));"
+      },
+      "id": "node-prepare-rows",
+      "name": "7. Preparer lignes Google Sheet",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1640, 250]
+    },
+
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "19vRTk2PjkbHBFbCHT8P8_07jSsPGPlG8drqitzEq7FE",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Documents",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {}
+      },
+      "id": "node-google-sheets",
+      "name": "8. Export Google Sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [1840, 250],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "google-sheets-sparky",
+          "name": "SPARKY Google Sheets"
+        }
+      }
+    },
+
+    {
+      "parameters": {
+        "jsCode": "const d = $('6. Resultat Extraction').first().json;\nconst sheetId = '19vRTk2PjkbHBFbCHT8P8_07jSsPGPlG8drqitzEq7FE';\nconst sheetUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/edit`;\nconst lignes = d.lignes || [];\n\nconst badgeColor = d.confiance_pct >= 85 ? '#2e7d32' : d.confiance_pct >= 60 ? '#e65100' : '#c62828';\nconst badgeBg    = d.confiance_pct >= 85 ? '#e8f5e9' : d.confiance_pct >= 60 ? '#fff3e0' : '#ffebee';\n\nlet articlesHtml = '';\nif (lignes.length > 0) {\n  const rows = lignes.map((l, i) => {\n    const pu  = Number(l.prix_unitaire || 0);\n    const qte = Number(l.quantite || 1);\n    const rem = Number(l.remise || 0);\n    const tva = Number(l.tva || 0);\n    const ttc = Number(l.montant_ttc || pu * qte * (1-rem/100) * (1+tva/100));\n    return `<tr style=\"background:${i%2===0?'#fff':'#f8f9ff'}\">`\n      + `<td style=\"padding:9px 14px;border:1px solid #e8e8e8;font-weight:600;color:#1a1a2e\">${l.designation||'N/A'}</td>`\n      + `<td style=\"padding:9px 14px;border:1px solid #e8e8e8;font-family:monospace;font-size:11px;color:#1565c0;text-align:center\">${l.reference||'-'}</td>`\n      + `<td style=\"padding:9px 14px;border:1px solid #e8e8e8;text-align:center;font-weight:600\">${qte}</td>`\n      + `<td style=\"padding:9px 14px;border:1px solid #e8e8e8;text-align:right\">${pu.toFixed(3)}</td>`\n      + `<td style=\"padding:9px 14px;border:1px solid #e8e8e8;text-align:center;color:${rem>0?'#e65100':'#aaa'}\">${rem>0?rem+'%':'-'}</td>`\n      + `<td style=\"padding:9px 14px;border:1px solid #e8e8e8;text-align:center;color:#555\">${tva>0?tva+'%':'-'}</td>`\n      + `<td style=\"padding:9px 14px;border:1px solid #e8e8e8;text-align:right;font-weight:700;color:#1a1a2e\">${ttc.toFixed(3)}</td>`\n      + '</tr>';\n  }).join('');\n  articlesHtml =\n    `<h3 style=\"color:#1a1a2e;font-size:15px;font-weight:700;margin:28px 0 14px;padding-bottom:8px;border-bottom:2px solid #f5c518\">Articles Extraits par IA <span style=\"background:#1a1a2e;color:#f5c518;font-size:12px;padding:2px 10px;border-radius:20px;margin-left:8px\">${lignes.length} ligne(s)</span></h3>`\n    + '<div style=\"overflow-x:auto\"><table style=\"width:100%;border-collapse:collapse;font-size:13px\">'\n    + '<thead><tr style=\"background:#1a1a2e\">'\n    + '<th style=\"padding:11px 14px;color:#f5c518;text-align:left;border:1px solid #2a2a4a\">Designation</th>'\n    + '<th style=\"padding:11px 14px;color:#f5c518;text-align:center;border:1px solid #2a2a4a\">Reference</th>'\n    + '<th style=\"padding:11px 14px;color:#f5c518;text-align:center;border:1px solid #2a2a4a\">Qte</th>'\n    + '<th style=\"padding:11px 14px;color:#f5c518;text-align:right;border:1px solid #2a2a4a\">Prix U. (TND)</th>'\n    + '<th style=\"padding:11px 14px;color:#f5c518;text-align:center;border:1px solid #2a2a4a\">Remise</th>'\n    + '<th style=\"padding:11px 14px;color:#f5c518;text-align:center;border:1px solid #2a2a4a\">TVA</th>'\n    + '<th style=\"padding:11px 14px;color:#f5c518;text-align:right;border:1px solid #2a2a4a\">TTC (TND)</th>'\n    + '</tr></thead>'\n    + `<tbody>${rows}</tbody>`\n    + '<tfoot>'\n    + `<tr style=\"background:#fff8e1\"><td colspan=\"2\" style=\"padding:11px 14px;font-weight:700;color:#555;border:1px solid #e0e0e0;font-size:12px\">Moteur IA: ${d.extraction_moteur||'Mistral AI'}</td><td colspan=\"4\" style=\"padding:11px 14px;font-weight:700;color:#1a1a2e;text-align:right;border:1px solid #e0e0e0\">TOTAL HT</td><td style=\"padding:11px 14px;font-weight:700;color:#1a1a2e;text-align:right;border:1px solid #e0e0e0\">${d.montant_ht} TND</td></tr>`\n    + `<tr style=\"background:#f0f4ff\"><td colspan=\"6\" style=\"padding:11px 14px;font-weight:800;color:#1a1a2e;text-align:right;border:1px solid #e0e0e0;font-size:14px\">TOTAL TTC</td><td style=\"padding:11px 14px;font-weight:800;font-size:16px;color:#1a1a2e;text-align:right;border:1px solid #e0e0e0\">${d.montant_ttc} TND</td></tr>`\n    + '</tfoot></table></div>';\n} else {\n  articlesHtml = '<p style=\"color:#888;font-style:italic;background:#f9f9f9;padding:16px;border-radius:8px;margin-top:20px\">Aucun article extrait pour ce document.</p>';\n}\n\nconst sheetButton =\n  '<div style=\"text-align:center;margin:28px 0 12px\">'\n  + `<a href=\"${sheetUrl}\" target=\"_blank\" style=\"display:inline-block;background:#0f9d58;color:#fff;padding:14px 32px;border-radius:8px;text-decoration:none;font-weight:700;font-size:15px;box-shadow:0 2px 6px rgba(15,157,88,.3)\">Voir dans Google Sheets &rarr;</a>`\n  + `<p style=\"font-size:11px;color:#888;margin-top:8px\">${lignes.length} ligne(s) ajoutee(s) au sheet partage</p>`\n  + '</div>';\n\nconst date = new Date().toLocaleString('fr-TN', { timeZone: 'Africa/Tunis' });\nconst subject = `[SPARKY] ${d.type_label} extrait - ${d.fournisseur||'Fournisseur inconnu'} - ${d.montant_ttc} TND`;\n\nconst htmlBody =\n  '<div style=\"font-family:Arial,sans-serif;max-width:900px;margin:0 auto;background:#f5f5f5;padding:20px\">'\n  + '<div style=\"background:#1a1a2e;padding:28px 32px;border-radius:14px 14px 0 0;text-align:center\">'\n  + '<h1 style=\"color:#f5c518;margin:0;font-size:28px;letter-spacing:-0.5px\">SPARKY</h1>'\n  + '<p style=\"color:rgba(255,255,255,.55);margin:6px 0 0;font-size:13px\">Systeme Intelligent de Gestion Documentaire</p>'\n  + '</div>'\n  + '<div style=\"background:#fff;padding:20px 32px;border:1px solid #e0e0e0\">'\n  + '<div style=\"display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px\">'\n  + '<div style=\"background:#f8f9ff;border-radius:12px;padding:20px;border-left:4px solid #1565c0\">'\n  + '<h3 style=\"margin:0 0 12px;color:#1a1a2e;font-size:14px\">Classification IA</h3>'\n  + `<div style=\"font-size:22px;font-weight:800;color:#1a1a2e;margin-bottom:8px\">${d.type_label}</div>`\n  + `<div style=\"display:inline-block;background:${badgeBg};color:${badgeColor};padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700\">Confiance: ${d.confiance_pct}% — ${d.confiance_niveau}</div>`\n  + '</div>'\n  + '<div style=\"background:#f8f9ff;border-radius:12px;padding:20px;border-left:4px solid #f5c518\">'\n  + '<h3 style=\"margin:0 0 12px;color:#1a1a2e;font-size:14px\">Informations Extraites</h3>'\n  + `<table style=\"width:100%;font-size:13px\"><tr><td style=\"padding:5px 0;color:#888\">Fournisseur</td><td style=\"font-weight:700;color:#1a1a2e\">${d.fournisseur||'N/A'}</td></tr><tr><td style=\"padding:5px 0;color:#888\">Numero</td><td style=\"font-family:monospace;color:#1565c0\">${d.numero_document||'N/A'}</td></tr><tr><td style=\"padding:5px 0;color:#888\">Date</td><td style=\"color:#555\">${d.date_document||'N/A'}</td></tr><tr><td style=\"padding:5px 0;color:#888\">Montant HT</td><td style=\"font-weight:600\">${d.montant_ht} TND</td></tr><tr><td style=\"padding:5px 0;color:#888\">TVA</td><td style=\"color:#555\">${d.montant_tva} TND</td></tr><tr><td style=\"padding:5px 0;color:#888\">Montant TTC</td><td style=\"font-size:18px;font-weight:800;color:#1a1a2e\">${d.montant_ttc} TND</td></tr></table>`\n  + '</div></div>'\n  + articlesHtml\n  + sheetButton\n  + '</div>'\n  + '<div style=\"background:#1a1a2e;padding:16px 32px;border-radius:0 0 14px 14px;text-align:center\">'\n  + `<p style=\"margin:0;color:rgba(255,255,255,.5);font-size:12px\">SPARKY &mdash; Pipeline IA: Mistral AI + n8n + Google Sheets &mdash; ${date}</p>`\n  + '</div>'\n  + '</div>';\n\nreturn [{ json: { subject, htmlBody, sheetUrl, data: d } }];"
+      },
+      "id": "node-build-email",
+      "name": "9. Construire Email HTML",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2040, 400]
+    },
+
+    {
+      "parameters": {
+        "sendTo": "mahmoud.elloumi@enis.tn",
+        "subject": "={{ $json.subject }}",
+        "emailType": "html",
+        "message": "={{ $json.htmlBody }}",
+        "options": {}
+      },
+      "id": "node-send-email",
+      "name": "10. Envoyer Email (n8n)",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [2280, 400],
+      "credentials": {
+        "smtp": { "id": "smtp-sparky", "name": "SPARKY SMTP" }
+      }
+    },
+
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ status: 'success', type: $('4. Resultat Classification').first().json.type_label, fournisseur: $('6. Resultat Extraction').first().json.fournisseur, nb_articles: $('6. Resultat Extraction').first().json.nb_lignes, montant_ttc: $('6. Resultat Extraction').first().json.montant_ttc, sheet_url: $('9. Construire Email HTML').first().json.sheetUrl }) }}"
+      },
+      "id": "node-response",
+      "name": "11. Reponse Finale",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [2520, 400]
+    }
+
+  ],
+
+  "connections": {
+    "1. Reception Document": {
+      "main": [[{ "node": "2. Validation et Detection Type", "type": "main", "index": 0 }]]
+    },
+    "2. Validation et Detection Type": {
+      "main": [[{ "node": "3. Labellisation Type Document", "type": "main", "index": 0 }]]
+    },
+    "3. Labellisation Type Document": {
+      "main": [[{ "node": "4. Resultat Classification", "type": "main", "index": 0 }]]
+    },
+    "4. Resultat Classification": {
+      "main": [[{ "node": "5. Calcul Total & Métadonnées Modèle", "type": "main", "index": 0 }]]
+    },
+    "5. Calcul Total & Métadonnées Modèle": {
+      "main": [[{ "node": "6. Resultat Extraction", "type": "main", "index": 0 }]]
+    },
+    "6. Resultat Extraction": {
+      "main": [[
+        { "node": "7. Preparer lignes Google Sheet", "type": "main", "index": 0 },
+        { "node": "9. Construire Email HTML", "type": "main", "index": 0 }
+      ]]
+    },
+    "7. Preparer lignes Google Sheet": {
+      "main": [[{ "node": "8. Export Google Sheet", "type": "main", "index": 0 }]]
+    },
+    "8. Export Google Sheet": {
+      "main": [[]]
+    },
+    "9. Construire Email HTML": {
+      "main": [[{ "node": "10. Envoyer Email (n8n)", "type": "main", "index": 0 }]]
+    },
+    "10. Envoyer Email (n8n)": {
+      "main": [[{ "node": "11. Reponse Finale", "type": "main", "index": 0 }]]
+    }
+  },
+
+  "settings": { "executionOrder": "v1" },
+  "tags": ["sparky", "pipeline", "ia", "soutenance"],
+  "meta": {
+    "description": "Pipeline IA SPARKY: classification + extraction Mistral AI, export Google Sheets (1 ligne par article), email HTML avec contenu document + bouton lien sheet."
+  }
+}

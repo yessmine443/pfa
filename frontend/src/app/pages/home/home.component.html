@@ -1,0 +1,63 @@
+<div class="home-page">
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="hero-content">
+      <img src="assets/logo.png" alt="SPARKY" class="hero-logo">
+      <div>
+        <h1 class="hero-title">Bienvenue sur SPARKY</h1>
+        <p class="hero-subtitle">Gestion intelligente des documents photovoltaïques</p>
+      </div>
+    </div>
+    <button mat-raised-button class="hero-cta" routerLink="/scanner">
+      <mat-icon>document_scanner</mat-icon>
+      Scanner un document
+    </button>
+  </div>
+
+  <!-- Stats Grid -->
+  <div class="stats-grid">
+    <mat-card
+      *ngFor="let card of statCards"
+      class="stat-card"
+      (click)="navigate(card.route, card.filter)"
+      [style.border-left-color]="card.color">
+      <mat-card-content>
+        <div class="stat-icon" [style.background]="card.color + '20'">
+          <mat-icon [style.color]="card.color">{{ card.icon }}</mat-icon>
+        </div>
+        <div class="stat-info">
+          <p class="stat-label">{{ card.label }}</p>
+          <p class="stat-value" [style.color]="card.color">{{ stats()[card.key] }}</p>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Quick Actions -->
+  <h2 class="section-title">Actions rapides</h2>
+  <div class="quick-actions">
+    <mat-card
+      *ngFor="let action of quickActions"
+      class="action-card"
+      (click)="navigate(action.route)">
+      <mat-card-content>
+        <div class="action-icon" [style.background]="action.color">
+          <mat-icon>{{ action.icon }}</mat-icon>
+        </div>
+        <h3 class="action-label">{{ action.label }}</h3>
+        <p class="action-desc">{{ action.description }}</p>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Pending documents alert -->
+  <mat-card *ngIf="stats().pending > 0" class="alert-card">
+    <mat-card-content>
+      <mat-icon color="warn">warning</mat-icon>
+      <span>{{ stats().pending }} document(s) en attente de traitement</span>
+      <button mat-button color="primary" routerLink="/documents">Voir</button>
+    </mat-card-content>
+  </mat-card>
+
+</div>

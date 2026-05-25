@@ -1,0 +1,471 @@
+{
+  "name": "SPARKY - Document Processing Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "sparky",
+        "responseMode": "responseNode",
+        "options": {
+          "rawBody": true
+        }
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook Sparky",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "sparky-main"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.body.event }}",
+              "operation": "equal",
+              "value2": "document_uploaded"
+            }
+          ]
+        }
+      },
+      "id": "if-uploaded",
+      "name": "Est un upload?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [500, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.body.event }}",
+              "operation": "equal",
+              "value2": "document_classified"
+            }
+          ]
+        }
+      },
+      "id": "if-classified",
+      "name": "Est classifié?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [500, 500]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.body.event }}",
+              "operation": "equal",
+              "value2": "document_extracted"
+            }
+          ]
+        }
+      },
+      "id": "if-extracted",
+      "name": "Est extrait?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [500, 700]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.SPARKY_API_URL }}/classify",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "document_id",
+              "value": "={{ $json.body.document_id }}"
+            },
+            {
+              "name": "file_url",
+              "value": "={{ $json.body.storage_url }}"
+            },
+            {
+              "name": "mime_type",
+              "value": "={{ $json.body.mime_type }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "http-classify",
+      "name": "Classifier le document",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [750, 200]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.SPARKY_API_URL }}/extract",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "document_id",
+              "value": "={{ $json.body.document_id }}"
+            },
+            {
+              "name": "type_document",
+              "value": "={{ $json.body.type_document }}"
+            },
+            {
+              "name": "file_url",
+              "value": "={{ $json.body.file_url || $json.body.storage_url }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "http-extract",
+      "name": "Extraire les données",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [750, 450]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "rules": [
+            {
+              "value2": "facture",
+              "output": 0
+            },
+            {
+              "value2": "bon_livraison",
+              "output": 1
+            },
+            {
+              "value2": "bon_commande",
+              "output": 2
+            },
+            {
+              "value2": "avoir",
+              "output": 3
+            },
+            {
+              "value2": "devis",
+              "output": 4
+            }
+          ]
+        },
+        "value1": "={{ $json.body.type_document }}"
+      },
+      "id": "switch-doc-type",
+      "name": "Type de document",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [1000, 450]
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "schema": {
+          "__rl": true,
+          "value": "public",
+          "mode": "list"
+        },
+        "table": {
+          "__rl": true,
+          "value": "documents",
+          "mode": "list"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{ $json.body.document_id }}",
+            "nom_fichier": "={{ $json.body.nom_fichier || 'document' }}",
+            "storage_url": "={{ $json.body.storage_url }}",
+            "type_document": "={{ $json.body.type_document }}",
+            "score_confiance": "={{ $json.body.score_confiance }}",
+            "statut": "classified"
+          }
+        }
+      },
+      "id": "pg-upsert-document",
+      "name": "Sauvegarder document",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [1250, 200],
+      "credentials": {
+        "postgres": {
+          "id": "postgres-sparky",
+          "name": "Sparky PostgreSQL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "schema": {
+          "__rl": true,
+          "value": "public",
+          "mode": "list"
+        },
+        "table": {
+          "__rl": true,
+          "value": "factures",
+          "mode": "list"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "document_id": "={{ $json.body.document_id }}",
+            "numero_facture": "={{ $json.body.donnees.numero_facture }}",
+            "date_facture": "={{ $json.body.donnees.date_facture }}",
+            "montant_ht": "={{ $json.body.donnees.montant_ht }}",
+            "montant_ttc": "={{ $json.body.donnees.montant_ttc }}"
+          }
+        }
+      },
+      "id": "pg-save-facture",
+      "name": "Sauvegarder Facture",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [1250, 350],
+      "credentials": {
+        "postgres": {
+          "id": "postgres-sparky",
+          "name": "Sparky PostgreSQL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "schema": {
+          "__rl": true,
+          "value": "public",
+          "mode": "list"
+        },
+        "table": {
+          "__rl": true,
+          "value": "devis",
+          "mode": "list"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "document_id": "={{ $json.body.document_id }}",
+            "numero_devis": "={{ $json.body.donnees.numero_devis }}",
+            "date_devis": "={{ $json.body.donnees.date_devis }}",
+            "date_validite": "={{ $json.body.donnees.date_validite }}",
+            "montant_ht": "={{ $json.body.donnees.montant_ht }}",
+            "montant_ttc": "={{ $json.body.donnees.montant_ttc }}"
+          }
+        }
+      },
+      "id": "pg-save-devis",
+      "name": "Sauvegarder Devis",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [1250, 550],
+      "credentials": {
+        "postgres": {
+          "id": "postgres-sparky",
+          "name": "Sparky PostgreSQL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "schema": {
+          "__rl": true,
+          "value": "public",
+          "mode": "list"
+        },
+        "table": {
+          "__rl": true,
+          "value": "bons_livraison",
+          "mode": "list"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "document_id": "={{ $json.body.document_id }}",
+            "numero_bl": "={{ $json.body.donnees.numero_bl }}",
+            "date_livraison": "={{ $json.body.donnees.date_livraison }}",
+            "transporteur": "={{ $json.body.donnees.transporteur }}"
+          }
+        }
+      },
+      "id": "pg-save-bl",
+      "name": "Sauvegarder BL",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [1250, 650],
+      "credentials": {
+        "postgres": {
+          "id": "postgres-sparky",
+          "name": "Sparky PostgreSQL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "schema": {
+          "__rl": true,
+          "value": "public",
+          "mode": "list"
+        },
+        "table": {
+          "__rl": true,
+          "value": "documents",
+          "mode": "list"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "statut": "extracted"
+          }
+        },
+        "where": {
+          "values": [
+            {
+              "column": "id",
+              "value": "={{ $json.body.document_id }}"
+            }
+          ]
+        }
+      },
+      "id": "pg-update-status",
+      "name": "Mettre à jour statut",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [1500, 450],
+      "credentials": {
+        "postgres": {
+          "id": "postgres-sparky",
+          "name": "Sparky PostgreSQL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={ \"status\": \"ok\", \"message\": \"Workflow traité avec succès\" }"
+      },
+      "id": "webhook-response",
+      "name": "Réponse Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1750, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={ \"status\": \"ignored\", \"message\": \"Événement non traité\" }"
+      },
+      "id": "webhook-ignore",
+      "name": "Ignorer",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [750, 750]
+    }
+  ],
+  "connections": {
+    "Webhook Sparky": {
+      "main": [
+        [
+          { "node": "Est un upload?", "type": "main", "index": 0 },
+          { "node": "Est classifié?", "type": "main", "index": 0 },
+          { "node": "Est extrait?", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Est un upload?": {
+      "main": [
+        [{ "node": "Classifier le document", "type": "main", "index": 0 }],
+        []
+      ]
+    },
+    "Est classifié?": {
+      "main": [
+        [{ "node": "Extraire les données", "type": "main", "index": 0 }],
+        []
+      ]
+    },
+    "Est extrait?": {
+      "main": [
+        [{ "node": "Type de document", "type": "main", "index": 0 }],
+        [{ "node": "Ignorer", "type": "main", "index": 0 }]
+      ]
+    },
+    "Classifier le document": {
+      "main": [
+        [{ "node": "Sauvegarder document", "type": "main", "index": 0 }]
+      ]
+    },
+    "Extraire les données": {
+      "main": [
+        [{ "node": "Type de document", "type": "main", "index": 0 }]
+      ]
+    },
+    "Type de document": {
+      "main": [
+        [{ "node": "Sauvegarder Facture", "type": "main", "index": 0 }],
+        [{ "node": "Sauvegarder BL", "type": "main", "index": 0 }],
+        [],
+        [],
+        [{ "node": "Sauvegarder Devis", "type": "main", "index": 0 }]
+      ]
+    },
+    "Sauvegarder document": {
+      "main": [
+        [{ "node": "Réponse Webhook", "type": "main", "index": 0 }]
+      ]
+    },
+    "Sauvegarder Facture": {
+      "main": [
+        [{ "node": "Mettre à jour statut", "type": "main", "index": 0 }]
+      ]
+    },
+    "Sauvegarder Devis": {
+      "main": [
+        [{ "node": "Mettre à jour statut", "type": "main", "index": 0 }]
+      ]
+    },
+    "Sauvegarder BL": {
+      "main": [
+        [{ "node": "Mettre à jour statut", "type": "main", "index": 0 }]
+      ]
+    },
+    "Mettre à jour statut": {
+      "main": [
+        [{ "node": "Réponse Webhook", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": ["sparky", "photovoltaique", "documents"],
+  "triggerCount": 0,
+  "updatedAt": "2026-04-09T00:00:00.000Z",
+  "versionId": "1"
+}

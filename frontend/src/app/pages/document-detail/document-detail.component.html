@@ -1,0 +1,209 @@
+<div class="detail-page">
+
+  <!-- Back button -->
+  <app-back-button></app-back-button>
+
+  <!-- Not found -->
+  <div *ngIf="!document" class="not-found">
+    <mat-icon>search_off</mat-icon>
+    <h2>Document introuvable</h2>
+    <p>L'identifiant {{ documentId }} ne correspond à aucun document.</p>
+    <button mat-raised-button color="primary" (click)="back()">Retour</button>
+  </div>
+
+  <ng-container *ngIf="document">
+
+    <!-- Header card -->
+    <mat-card class="header-card" [style.border-left-color]="getTypeColor()">
+      <mat-card-content>
+        <div class="header-layout">
+          <div class="header-left">
+            <div class="type-badge" [style.background]="getTypeColor() + '20'" [style.color]="getTypeColor()">
+              <mat-icon>{{ document.type_document ? typeIcons[document.type_document] : 'description' }}</mat-icon>
+              {{ document.type_document ? typeLabels[document.type_document] : 'Non classifié' }}
+            </div>
+            <h2 class="doc-name">{{ document.nom_fichier }}</h2>
+            <div class="doc-meta-row">
+              <span *ngIf="document.numero_document" class="meta-item">
+                <mat-icon>tag</mat-icon>{{ document.numero_document }}
+              </span>
+              <span *ngIf="document.fournisseur_nom" class="meta-item">
+                <mat-icon>business</mat-icon>{{ document.fournisseur_nom }}
+              </span>
+              <span class="meta-item">
+                <mat-icon>schedule</mat-icon>{{ document.created_at | date:'dd/MM/yyyy HH:mm' }}
+              </span>
+              <span *ngIf="document.score_confiance" class="meta-item confidence">
+                <mat-icon>psychology</mat-icon>{{ document.score_confiance * 100 | number:'1.0-0' }}% confiance IA
+              </span>
+            </div>
+          </div>
+          <div class="header-right">
+            <div class="amount-block" *ngIf="document.montant_ttc">
+              <span class="amount-label">Montant TTC</span>
+              <span class="amount-value">{{ document.montant_ttc | currency:'TND':'code':'1.2-2' }}</span>
+            </div>
+            <div class="header-actions">
+              <button mat-stroked-button (click)="openFile()">
+                <mat-icon>open_in_new</mat-icon> Ouvrir
+              </button>
+              <button mat-raised-button color="accent"
+                      *ngIf="document.type_document === 'devis'"
+                      (click)="compareDevis()">
+                <mat-icon>compare_arrows</mat-icon> Comparer ce devis
+              </button>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Status card -->
+    <mat-card class="status-card">
+      <mat-card-content>
+        <h3>Statut du traitement</h3>
+        <div class="status-steps">
+          <div class="step" [class.done]="['classified','extracted'].includes(document.statut)">
+            <mat-icon>cloud_upload</mat-icon>
+            <span>Importé</span>
+          </div>
+          <div class="step-line"></div>
+          <div class="step" [class.done]="['classified','extracted'].includes(document.statut)">
+            <mat-icon>psychology</mat-icon>
+            <span>Classifié</span>
+          </div>
+          <div class="step-line"></div>
+          <div class="step" [class.done]="document.statut === 'extracted'">
+            <mat-icon>data_object</mat-icon>
+            <span>Extrait</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Info blocks -->
+    <div class="info-grid">
+      <mat-card class="info-card">
+        <mat-card-header>
+          <mat-card-title>Informations générales</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="info-row">
+            <span class="info-label">Type</span>
+            <span class="info-value">{{ document.type_document ? typeLabels[document.type_document] : '—' }}</span>
+          </div>
+          <mat-divider></mat-divider>
+          <div class="info-row">
+            <span class="info-label">Fournisseur</span>
+            <span class="info-value">{{ document.fournisseur_nom || '—' }}</span>
+          </div>
+          <mat-divider></mat-divider>
+          <div class="info-row">
+            <span class="info-label">Numéro</span>
+            <span class="info-value mono">{{ document.numero_document || '—' }}</span>
+          </div>
+          <mat-divider></mat-divider>
+          <div class="info-row">
+            <span class="info-label">Montant TTC</span>
+            <span class="info-value bold">{{ document.montant_ttc ? (document.montant_ttc | currency:'TND':'code':'1.2-2') : '—' }}</span>
+          </div>
+          <mat-divider></mat-divider>
+          <div class="info-row">
+            <span class="info-label">Statut</span>
+            <span class="info-value">{{ document.statut }}</span>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="info-card">
+        <mat-card-header>
+          <mat-card-title>Classification IA</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="confidence-display" *ngIf="document.score_confiance; else noConfidence">
+            <div class="conf-circle" [style.border-color]="getTypeColor()">
+              <span class="conf-pct" [style.color]="getTypeColor()">
+                {{ document.score_confiance * 100 | number:'1.0-0' }}%
+              </span>
+            </div>
+            <div class="conf-info">
+              <p class="conf-type">{{ document.type_document ? typeLabels[document.type_document] : '—' }}</p>
+              <p class="conf-label">Score de confiance</p>
+            </div>
+          </div>
+          <ng-template #noConfidence>
+            <p class="no-data">Classification non disponible</p>
+          </ng-template>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Articles table — même style que le scanner -->
+    <mat-card class="articles-card" *ngIf="document.lignes && document.lignes.length > 0">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>list_alt</mat-icon>
+          Articles <span class="articles-count">({{ document.lignes.length }})</span>
+        </mat-card-title>
+        <span class="spacer"></span>
+        <button mat-stroked-button color="primary" (click)="exportExcel()" [disabled]="exportingExcel">
+          <mat-icon>{{ exportingExcel ? 'hourglass_empty' : 'download' }}</mat-icon>
+          {{ exportingExcel ? 'Export...' : 'Exporter Excel' }}
+        </button>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="articles-table-wrap">
+          <table class="articles-table">
+            <thead>
+              <tr>
+                <th *ngIf="hasRef()">Réf.</th>
+                <th>Désignation</th>
+                <th class="center">Qté</th>
+                <th *ngIf="hasPrixU()" class="price">Prix U. HT</th>
+                <th *ngIf="hasRemise()" class="center">Remise %</th>
+                <th class="price">Net HT</th>
+                <th *ngIf="hasTva()" class="center">TVA %</th>
+                <th *ngIf="hasTtc()" class="price">Net TTC</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let ligne of lignes; let i = index"
+                  [class.best-price-row]="i === bestPrixIndex()">
+                <td *ngIf="hasRef()" class="mono">{{ ligne.reference || '—' }}</td>
+                <td class="designation">
+                  {{ ligne.designation }}
+                  <mat-icon *ngIf="i === bestPrixIndex()"
+                    style="font-size:14px;color:#388e3c;vertical-align:middle"
+                    matTooltip="Meilleur prix unitaire">star</mat-icon>
+                </td>
+                <td class="center">{{ ligne.quantite || 1 }} {{ ligne.unite || '' }}</td>
+                <td *ngIf="hasPrixU()" class="price" [class.best-price-cell]="i === bestPrixIndex()">
+                  {{ ligne.prix_unitaire | currency:'TND':'code':'1.2-3' }}
+                </td>
+                <td *ngIf="hasRemise()" class="center">
+                  {{ ligne.remise_pct != null ? (ligne.remise_pct + '%') : '—' }}
+                </td>
+                <td class="price bold">{{ ligne.montant_ht | currency:'TND':'code':'1.3-3' }}</td>
+                <td *ngIf="hasTva()" class="center">
+                  {{ ligne.tva_taux != null ? (ligne.tva_taux + '%') : '—' }}
+                </td>
+                <td *ngIf="hasTtc()" class="price">
+                  {{ $any(ligne).montant_ttc | currency:'TND':'code':'1.3-3' }}
+                </td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td [attr.colspan]="totalColspan()" class="total-label">Total HT Net</td>
+                <td class="price bold total-value">{{ totalHT() | currency:'TND':'code':'1.3-3' }}</td>
+                <td *ngIf="hasTva()"></td>
+                <td *ngIf="hasTtc()"></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+  </ng-container>
+</div>

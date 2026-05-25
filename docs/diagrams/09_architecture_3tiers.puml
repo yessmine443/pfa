@@ -1,0 +1,55 @@
+@startuml SPARKY_Architecture_3Tiers
+title Architecture 3-Couches — Système SPARKY
+
+skinparam dpi 96
+scale 1400 width
+skinparam DefaultFontName "Segoe UI"
+skinparam DefaultFontSize 17
+skinparam TitleFontSize 24
+skinparam TitleFontStyle bold
+skinparam backgroundColor #FFFFFF
+skinparam ArrowColor #444444
+skinparam ArrowThickness 2
+skinparam ArrowFontSize 13
+
+skinparam rectangle {
+  BorderColor #444444
+  BorderThickness 1.5
+  FontSize 18
+  FontStyle bold
+  RoundCorner 14
+  Padding 14
+}
+
+skinparam package {
+  BorderColor #888888
+  BorderThickness 2
+  FontSize 20
+  FontStyle bold
+  FontColor #2C3E50
+}
+
+' ─── Couche 1 : Présentation (bleu) ───────────────────────────
+package "         COUCHE 1 — PRÉSENTATION         " #D6EAF8 {
+  rectangle "**Angular 20**\nSPA TypeScript" as ANG #FFFFFF
+}
+
+' ─── Couche 2 : Application (jaune) ───────────────────────────
+package "         COUCHE 2 — APPLICATION         " #FCF3CF {
+  rectangle "**FastAPI**\nPython 3.12" as API #FFFFFF
+  rectangle "**Mistral AI**\nClassification + OCR" as MISTRAL #FFFFFF
+  rectangle "**n8n**\nWorkflow auto." as N8N #FFFFFF
+}
+
+' ─── Couche 3 : Données (vert) ────────────────────────────────
+package "         COUCHE 3 — DONNÉES         " #D5F5E3 {
+  rectangle "**PostgreSQL 16**\nBase relationnelle" as DB #FFFFFF
+}
+
+' ─── Flux ─────────────────────────────────────────────────────
+ANG -down-> API : REST / JSON
+API -down-> DB : SQL async
+API -right-> MISTRAL
+API -right-> N8N
+
+@enduml

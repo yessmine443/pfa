@@ -1,0 +1,129 @@
+<div class="documents-page">
+
+  <!-- Header -->
+  <div class="page-header">
+    <h1 class="page-title">
+      <app-back-button></app-back-button>
+      <mat-icon>folder_open</mat-icon>
+      Documents
+    </h1>
+    <button mat-raised-button class="scan-btn" (click)="scanNew()">
+      <mat-icon>add</mat-icon>
+      Scanner
+    </button>
+  </div>
+
+  <!-- Filters + Search bar -->
+  <div class="toolbar">
+    <div class="filter-chips">
+      <button
+        *ngFor="let f of filters"
+        mat-button
+        class="filter-chip"
+        [class.active]="activeFilter() === f.value"
+        [style.border-color]="activeFilter() === f.value ? getTypeColor(f.value === 'all' ? undefined : f.value) : 'transparent'"
+        (click)="setFilter(f.value)">
+        <mat-icon>{{ f.icon }}</mat-icon>
+        {{ f.label }}
+        <span class="filter-count" *ngIf="f.value === 'all'">{{ stats().total }}</span>
+        <span class="filter-count" *ngIf="f.value === 'facture'">{{ stats().factures }}</span>
+        <span class="filter-count" *ngIf="f.value === 'bon_livraison'">{{ stats().bons_livraison }}</span>
+        <span class="filter-count" *ngIf="f.value === 'bon_commande'">{{ stats().bons_commande }}</span>
+        <span class="filter-count" *ngIf="f.value === 'avoir'">{{ stats().avoirs }}</span>
+        <span class="filter-count" *ngIf="f.value === 'devis'">{{ stats().devis }}</span>
+      </button>
+    </div>
+
+    <mat-form-field class="search-field" appearance="outline">
+      <mat-label>Rechercher</mat-label>
+      <mat-icon matPrefix>search</mat-icon>
+      <input matInput [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event)" placeholder="Nom, fournisseur...">
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="sort-field">
+      <mat-label>Trier par</mat-label>
+      <mat-select [value]="sortKey()" (selectionChange)="setSort($event.value)">
+        <mat-option *ngFor="let s of sortOptions" [value]="s.value">{{ s.label }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading()" class="loading-state">
+    <mat-spinner diameter="48"></mat-spinner>
+    <p>Chargement...</p>
+  </div>
+
+  <!-- Empty state -->
+  <div *ngIf="!loading() && displayedDocuments().length === 0" class="empty-state">
+    <mat-icon>inbox</mat-icon>
+    <h2>Aucun document</h2>
+    <p>Scannez ou importez votre premier document</p>
+    <button mat-raised-button color="primary" (click)="scanNew()">
+      <mat-icon>document_scanner</mat-icon>
+      Scanner maintenant
+    </button>
+  </div>
+
+  <!-- Documents grid -->
+  <div class="documents-grid" *ngIf="!loading() && displayedDocuments().length > 0">
+    <mat-card
+      *ngFor="let doc of displayedDocuments()"
+      class="doc-card"
+      (click)="openDocument(doc)"
+      [style.border-left-color]="getTypeColor(doc.type_document)">
+
+      <!-- Type badge -->
+      <div class="doc-type-badge"
+           [style.background]="getTypeColor(doc.type_document) + '15'"
+           [style.color]="getTypeColor(doc.type_document)">
+        <mat-icon>{{ doc.type_document ? typeIcons[doc.type_document] : 'description' }}</mat-icon>
+        {{ doc.type_document ? typeLabels[doc.type_document] : 'Non classifié' }}
+      </div>
+
+      <mat-card-content>
+        <!-- Filename -->
+        <p class="doc-filename" [matTooltip]="doc.nom_fichier">
+          {{ doc.nom_fichier }}
+        </p>
+
+        <!-- Number + Supplier -->
+        <div class="doc-meta" *ngIf="doc.numero_document || doc.fournisseur_nom">
+          <span *ngIf="doc.numero_document" class="doc-number">{{ doc.numero_document }}</span>
+          <span *ngIf="doc.fournisseur_nom" class="doc-supplier">
+            <mat-icon>business</mat-icon>
+            {{ doc.fournisseur_nom }}
+          </span>
+        </div>
+
+        <!-- Amount -->
+        <p class="doc-amount" *ngIf="doc.montant_ttc">
+          {{ doc.montant_ttc | currency:'TND':'code':'1.2-2' }}
+          <small>TTC</small>
+        </p>
+
+        <!-- Footer -->
+        <div class="doc-footer">
+          <!-- Status -->
+          <div class="doc-status" [style.color]="getStatusColor(doc.statut)">
+            <mat-icon>{{ getStatusIcon(doc.statut) }}</mat-icon>
+            <span>{{ doc.statut }}</span>
+          </div>
+
+          <!-- Confidence -->
+          <div class="doc-confidence" *ngIf="doc.score_confiance">
+            {{ doc.score_confiance * 100 | number:'1.0-0' }}%
+          </div>
+
+          <!-- Actions -->
+          <button mat-icon-button class="delete-btn"
+                  (click)="removeDocument($event, doc)"
+                  matTooltip="Supprimer">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+</div>

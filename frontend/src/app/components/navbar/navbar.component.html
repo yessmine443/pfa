@@ -1,0 +1,22 @@
+<mat-toolbar class="navbar">
+  <button mat-icon-button (click)="toggleSidenav.emit()" aria-label="Menu">
+    <mat-icon>menu</mat-icon>
+  </button>
+
+  <span class="navbar-title">
+    <img src="assets/logo_sun.png" alt="SPARKY" class="navbar-sun">
+    <img src="assets/titre.png" alt="SPARKY" class="navbar-titre">
+  </span>
+
+  <span class="spacer"></span>
+
+  <button
+    mat-raised-button
+    color="accent"
+    class="scan-btn"
+    (click)="onScanClick()"
+    matTooltip="Scanner un document">
+    <mat-icon>document_scanner</mat-icon>
+    Scanner
+  </button>
+</mat-toolbar>

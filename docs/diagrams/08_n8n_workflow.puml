@@ -1,0 +1,77 @@
+@startuml SPARKY_n8n_Workflow
+title Workflow n8n — SPARKY (11 nœuds)
+
+' ─── Layout horizontal ────────────────────────────────────────
+left to right direction
+
+' ─── Mise en page A4 paysage ──────────────────────────────────
+skinparam dpi 96
+skinparam pageMargin 6
+skinparam DefaultFontName "Segoe UI"
+skinparam DefaultFontSize 14
+skinparam TitleFontSize 22
+skinparam TitleFontStyle bold
+
+' ─── Couleurs ─────────────────────────────────────────────────
+skinparam backgroundColor #FFFFFF
+skinparam ArrowColor #444444
+skinparam ArrowThickness 1.5
+skinparam ArrowFontSize 13
+
+skinparam rectangle {
+  BackgroundColor #FFFEF5
+  BorderColor #444444
+  FontSize 14
+  FontStyle plain
+  RoundCorner 12
+  Padding 8
+}
+
+skinparam package {
+  BorderColor #888888
+  BorderThickness 1.5
+  FontSize 16
+  FontStyle bold
+  FontColor #2C3E50
+}
+
+' ─── Phase 1 : Réception (bleu) ───────────────────────────────
+package "Phase 1 — Réception" #D6EAF8 {
+  rectangle "**1. Réception Document**\nWebhook" as N1
+  rectangle "**2. Validation et\nDétection Type**\nCode JS" as N2
+}
+
+' ─── Phase 2 : Classification (jaune) ─────────────────────────
+package "Phase 2 — Classification" #FCF3CF {
+  rectangle "**3. Labellisation\nType Document**\nCode JS" as N3
+  rectangle "**4. Validation\nClassification**\nCode JS" as N4
+}
+
+' ─── Phase 3 : Extraction (pêche) ─────────────────────────────
+package "Phase 3 — Extraction" #FAE5D3 {
+  rectangle "**5. Calcul Total &\nMétadonnées Modèle**\nCode JS" as N5
+  rectangle "**6. Validation\nExtraction**\nCode JS" as N6
+}
+
+' ─── Phase 4 : Distribution (vert) ────────────────────────────
+package "Phase 4 — Distribution" #D5F5E3 {
+  rectangle "**7. Préparer Lignes**\nCode JS" as N7
+  rectangle "**8. Export\nGoogle Sheet**\nGoogle Sheets API" as N8
+  rectangle "**9. Construire\nEmail HTML**\nCode JS" as N9
+  rectangle "**10. Envoyer Email**\nSMTP (Gmail)" as N10
+  rectangle "**11. Réponse Finale**\nRespond to Webhook" as N11
+}
+
+' ─── Connexions ───────────────────────────────────────────────
+N1 --> N2
+N2 --> N3
+N3 --> N4
+N4 --> N5
+N5 --> N6
+N6 --> N7
+N6 --> N9
+N7 --> N8
+N9 --> N10
+N10 --> N11
+
+@enduml

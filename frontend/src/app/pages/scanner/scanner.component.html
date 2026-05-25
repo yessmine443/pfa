@@ -1,0 +1,388 @@
+<div class="scanner-page">
+  <h1 class="page-title">
+    <app-back-button></app-back-button>
+    <mat-icon>document_scanner</mat-icon>
+    Scanner un document
+  </h1>
+
+  <input #fileInput type="file" accept=".pdf,.jpg,.jpeg,.png,.tiff" style="display:none" (change)="onFileSelected($event)">
+  <canvas #canvasEl style="display:none"></canvas>
+
+  <!-- ===== IDLE ===== -->
+  <div *ngIf="step === 'idle'" class="step-container">
+    <div class="drop-zone" [class.drag-over]="dragOver"
+         (dragover)="onDragOver($event)" (dragleave)="onDragLeave()" (drop)="onDrop($event)"
+         (click)="openFilePicker()">
+      <mat-icon class="drop-icon">cloud_upload</mat-icon>
+      <h3>Glissez un fichier ici</h3>
+      <p>PDF, JPEG, PNG ou TIFF</p>
+    </div>
+    <div class="method-buttons">
+      <button mat-raised-button class="method-btn camera-btn" (click)="startCamera()">
+        <mat-icon>photo_camera</mat-icon>
+        <span>Caméra</span>
+        <small>Photographier le document</small>
+      </button>
+      <button mat-raised-button class="method-btn import-btn" (click)="openFilePicker()">
+        <mat-icon>upload_file</mat-icon>
+        <span>Importer</span>
+        <small>PDF ou image</small>
+      </button>
+    </div>
+  </div>
+
+  <!-- ===== CAMERA ===== -->
+  <div *ngIf="step === 'camera'" class="camera-container">
+    <div class="viewfinder">
+      <video #videoEl autoplay playsinline class="camera-video"></video>
+      <div class="camera-overlay"><div class="doc-frame"></div></div>
+    </div>
+    <div class="camera-controls">
+      <button mat-icon-button (click)="reset()"><mat-icon>arrow_back</mat-icon></button>
+      <button mat-fab class="capture-btn" (click)="capture()"><mat-icon>camera</mat-icon></button>
+      <button mat-icon-button (click)="openFilePicker()"><mat-icon>photo_library</mat-icon></button>
+    </div>
+  </div>
+
+  <!-- ===== PREVIEW ===== -->
+  <div *ngIf="step === 'preview'" class="preview-container">
+    <mat-card class="preview-card">
+      <mat-card-header>
+        <mat-card-title>Aperçu du document</mat-card-title>
+        <mat-card-subtitle>{{ capturedFile?.name }}</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="preview-image-wrap">
+          <img *ngIf="previewUrl && capturedFile?.type !== 'application/pdf'" [src]="previewUrl" alt="Aperçu" class="preview-img">
+          <div *ngIf="capturedFile?.type === 'application/pdf'" class="pdf-placeholder">
+            <mat-icon>picture_as_pdf</mat-icon>
+            <p>{{ capturedFile?.name }}</p>
+          </div>
+        </div>
+      </mat-card-content>
+      <mat-card-actions>
+        <button mat-button (click)="reset()"><mat-icon>close</mat-icon> Annuler</button>
+        <button mat-raised-button color="primary" (click)="processDocument()">
+          <mat-icon>auto_awesome</mat-icon> Analyser avec l'IA
+        </button>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+
+  <!-- ===== PROCESSING ===== -->
+  <div *ngIf="step === 'processing'" class="processing-container">
+    <mat-card class="processing-card">
+      <mat-card-content>
+        <div class="processing-animation"><mat-icon class="spin-icon">auto_awesome</mat-icon></div>
+        <h2>Analyse en cours...</h2>
+        <mat-progress-bar mode="indeterminate" color="accent"></mat-progress-bar>
+        <div class="processing-steps">
+          <div class="proc-step active"><mat-icon>cloud_upload</mat-icon><span>Téléchargement</span></div>
+          <mat-icon class="step-arrow">arrow_forward</mat-icon>
+          <div class="proc-step active"><mat-icon>psychology</mat-icon><span>Classification IA</span></div>
+          <mat-icon class="step-arrow">arrow_forward</mat-icon>
+          <div class="proc-step"><mat-icon>data_object</mat-icon><span>Extraction</span></div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- ===== DONE ===== -->
+  <div *ngIf="step === 'done' && result" class="result-container">
+
+    <!-- Classification badge -->
+    <mat-card class="result-card success">
+      <mat-card-content>
+        <div class="result-top">
+          <div class="type-badge"
+               [style.background]="getDocTypeColor(result.classification?.type_document) + '20'"
+               [style.border-color]="getDocTypeColor(result.classification?.type_document)">
+            <mat-icon [style.color]="getDocTypeColor(result.classification?.type_document)">
+              {{ getTypeIcon(result.classification?.type_document) }}
+            </mat-icon>
+            <span [style.color]="getDocTypeColor(result.classification?.type_document)">
+              {{ getTypeLabel(result.classification?.type_document) }}
+            </span>
+          </div>
+          <div class="confidence-pill">
+            <mat-icon>psychology</mat-icon>
+            {{ confidencePercent }}% confiance
+          </div>
+          <div class="fournisseur-info" *ngIf="result.extraction?.donnees?.fournisseur_nom">
+            <mat-icon>business</mat-icon>
+            {{ result.extraction.donnees.fournisseur_nom }}
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Articles table -->
+    <mat-card class="articles-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>list_alt</mat-icon>
+          Articles
+          <span class="articles-count" *ngIf="hasLignes">({{ lignes.length }})</span>
+        </mat-card-title>
+        <span class="spacer"></span>
+        <button mat-stroked-button (click)="toggleManualForm()" color="primary">
+          <mat-icon>{{ showManualForm ? 'close' : 'edit' }}</mat-icon>
+          {{ showManualForm ? 'Fermer' : 'Saisir manuellement' }}
+        </button>
+      </mat-card-header>
+
+      <!-- Manual entry form -->
+      <div class="manual-form" *ngIf="showManualForm" [formGroup]="articlesForm">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Fournisseur</mat-label>
+          <mat-icon matPrefix>business</mat-icon>
+          <input matInput formControlName="fournisseur_nom" placeholder="Nom du fournisseur">
+        </mat-form-field>
+
+        <div formArrayName="articles">
+          <div *ngFor="let art of articles.controls; let i = index" [formGroupName]="i" class="article-row">
+            <span class="art-num">{{ i + 1 }}</span>
+            <mat-form-field appearance="outline" class="art-desc">
+              <mat-label>Désignation</mat-label>
+              <input matInput formControlName="designation" placeholder="ex: Panneau solaire 400Wc">
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="art-ref">
+              <mat-label>Référence</mat-label>
+              <input matInput formControlName="reference">
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="art-qty">
+              <mat-label>Qté</mat-label>
+              <input matInput type="number" formControlName="quantite" min="0">
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="art-price">
+              <mat-label>Prix U. HT (TND)</mat-label>
+              <input matInput type="number" formControlName="prix_unitaire" min="0" step="0.01">
+            </mat-form-field>
+            <button mat-icon-button color="warn" (click)="removeArticle(i)" [disabled]="articles.length <= 1">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </div>
+        </div>
+
+        <div class="manual-actions">
+          <button mat-stroked-button (click)="addArticle()">
+            <mat-icon>add</mat-icon> Ajouter un article
+          </button>
+          <button mat-raised-button color="primary" (click)="saveManualArticles()">
+            <mat-icon>save</mat-icon> Valider les articles
+          </button>
+        </div>
+      </div>
+
+      <mat-card-content>
+        <!-- No lignes + no manual form -->
+        <div *ngIf="!hasLignes && !showManualForm" class="no-articles">
+          <mat-icon>info</mat-icon>
+          <p>Aucun article extrait automatiquement (image sans OCR ou document non structuré).</p>
+          <button mat-raised-button color="primary" (click)="toggleManualForm()">
+            <mat-icon>edit</mat-icon> Saisir les articles manuellement
+          </button>
+        </div>
+
+        <!-- Articles table -->
+        <div *ngIf="hasLignes" class="articles-table-wrap">
+          <table class="articles-table">
+            <thead>
+              <tr>
+                <th *ngIf="hasRef">Réf.</th>
+                <th>Désignation</th>
+                <th class="center">Qté</th>
+                <th *ngIf="hasPrixU" class="price">Prix U. HT</th>
+                <th *ngIf="hasRemise" class="center">Remise %</th>
+                <th class="price">Net HT</th>
+                <th *ngIf="hasTva" class="center">TVA %</th>
+                <th *ngIf="hasMontantTtc" class="price">Net TTC</th>
+                <th *ngIf="isDevis"></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let ligne of lignes; let i = index"
+                  [class.best-price-row]="i === bestPrixIndex">
+                <td *ngIf="hasRef" class="mono">{{ ligne.reference || '—' }}</td>
+                <td class="designation">
+                  {{ ligne.designation }}
+                  <mat-icon *ngIf="i === bestPrixIndex"
+                    style="font-size:14px;color:#388e3c;vertical-align:middle"
+                    matTooltip="Meilleur prix unitaire">star</mat-icon>
+                </td>
+                <td class="center">{{ ligne.quantite || 1 }} {{ ligne.unite || '' }}</td>
+                <td *ngIf="hasPrixU" class="price" [class.best-price-cell]="i === bestPrixIndex">
+                  {{ ligne.prix_unitaire | currency:'TND':'code':'1.2-3' }}
+                </td>
+                <td *ngIf="hasRemise" class="center">
+                  {{ ligne.remise_pct != null ? (ligne.remise_pct + '%') : '—' }}
+                </td>
+                <td class="price bold">{{ ligne.montant_ht | currency:'TND':'code':'1.3-3' }}</td>
+                <td *ngIf="hasTva" class="center">
+                  {{ ligne.tva_taux != null ? (ligne.tva_taux + '%') : '—' }}
+                </td>
+                <td *ngIf="hasMontantTtc" class="price">
+                  {{ ligne.montant_ttc | currency:'TND':'code':'1.3-3' }}
+                </td>
+                <td *ngIf="isDevis">
+                  <button mat-icon-button color="primary" (click)="compareWithOthers(i)"
+                          matTooltip="Comparer ce prix">
+                    <mat-icon>compare_arrows</mat-icon>
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td [attr.colspan]="totalColspan" class="total-label">Total HT Net</td>
+                <td class="price bold total-value">{{ totalLignes | currency:'TND':'code':'1.3-3' }}</td>
+                <td *ngIf="hasTva"></td>
+                <td *ngIf="hasMontantTtc"></td>
+                <td *ngIf="isDevis"></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </mat-card-content>
+
+      <!-- Compare CTA -->
+      <mat-card-actions *ngIf="hasLignes">
+        <button mat-button (click)="reset()"><mat-icon>add</mat-icon> Nouveau scan</button>
+        <span class="spacer"></span>
+        <button mat-stroked-button color="primary" (click)="exportExcel()" [disabled]="exportingExcel" style="margin-right:8px">
+          <mat-icon>{{ exportingExcel ? 'hourglass_empty' : 'download' }}</mat-icon>
+          {{ exportingExcel ? 'Export...' : 'Exporter Excel' }}
+        </button>
+        <button mat-raised-button color="accent" (click)="navigateToComparateur()">
+          <mat-icon>compare_arrows</mat-icon> Comparer les devis
+        </button>
+      </mat-card-actions>
+    </mat-card>
+
+    <!-- Compare result inline -->
+    <mat-card class="compare-inline-card" *ngIf="compareResult()">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>emoji_events</mat-icon>
+          Comparaison — {{ compareResult()!.reference_produit }}
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="winner-mini">
+          <mat-icon class="trophy">emoji_events</mat-icon>
+          <div>
+            <p class="winner-name">{{ compareResult()!.meilleur_prix.fournisseur_nom }}</p>
+            <p class="winner-price">{{ compareResult()!.meilleur_prix.prix_unitaire | currency:'TND':'code':'1.2-4' }} / unité</p>
+          </div>
+        </div>
+        <p class="compare-hint">
+          <mat-icon>info</mat-icon>
+          Ajoutez d'autres devis dans le <a (click)="navigateToComparateur()" class="link">Comparateur</a> pour trouver le meilleur prix.
+        </p>
+      </mat-card-content>
+    </mat-card>
+
+    <div class="bottom-actions">
+      <button mat-button (click)="reset()"><mat-icon>add</mat-icon> Nouveau scan</button>
+      <button mat-stroked-button (click)="goToDocuments()"><mat-icon>folder_open</mat-icon> Mes documents</button>
+    </div>
+  </div>
+
+  <!-- ===== COMPARAISON SESSION DEVIS ===== -->
+  <div *ngIf="devisSession().length > 0" class="session-compare-section">
+
+    <!-- Meilleur prix banner -->
+    <mat-card *ngIf="meilleureOffre" class="best-price-banner">
+      <mat-card-content>
+        <div class="best-price-inner">
+          <mat-icon class="trophy-icon">emoji_events</mat-icon>
+          <div class="best-price-info">
+            <span class="best-label">Meilleur prix</span>
+            <span class="best-fournisseur">{{ meilleureOffre.fournisseur }}</span>
+          </div>
+          <div class="best-total">
+            {{ meilleureOffre.totalHt | currency:'TND':'code':'1.3-3' }}
+            <span class="best-sub">HT</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Tableau comparatif -->
+    <mat-card class="session-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>compare_arrows</mat-icon>
+          Comparaison des devis
+          <span class="articles-count">({{ devisSession().length }} devis)</span>
+        </mat-card-title>
+        <span class="spacer"></span>
+        <button mat-icon-button color="warn" (click)="clearSession()" matTooltip="Effacer la comparaison">
+          <mat-icon>delete_sweep</mat-icon>
+        </button>
+      </mat-card-header>
+      <mat-card-content>
+        <table class="articles-table">
+          <thead>
+            <tr>
+              <th>Rang</th>
+              <th>Fournisseur</th>
+              <th>Articles</th>
+              <th class="price">Total HT</th>
+              <th class="price">Économie</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let entry of devisSessionSorted; let i = index"
+                [class.best-row]="entry === meilleureOffre">
+              <td class="center">
+                <mat-icon *ngIf="i === 0" style="color:#f5c518">emoji_events</mat-icon>
+                <span *ngIf="i > 0" class="rank-num">{{ i + 1 }}</span>
+              </td>
+              <td>
+                <strong *ngIf="entry === meilleureOffre" style="color:#388e3c">
+                  {{ entry.fournisseur }}
+                </strong>
+                <span *ngIf="entry !== meilleureOffre">{{ entry.fournisseur }}</span>
+              </td>
+              <td class="center">{{ entry.lignes.length }}</td>
+              <td class="price bold">{{ entry.totalHt | currency:'TND':'code':'1.3-3' }}</td>
+              <td class="price">
+                <span *ngIf="i === 0" style="color:#388e3c;font-weight:600">Meilleur</span>
+                <span *ngIf="i > 0" style="color:#d32f2f">
+                  +{{ economieVsMeilleur(entry) | currency:'TND':'code':'1.3-3' }}
+                </span>
+              </td>
+              <td>
+                <button mat-icon-button color="warn" (click)="removeFromSession(devisSession().indexOf(entry))"
+                        matTooltip="Retirer">
+                  <mat-icon>close</mat-icon>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="scan-hint" *ngIf="devisSession().length === 1">
+          <mat-icon>info</mat-icon>
+          Scannez un 2ème devis pour voir la comparaison automatique.
+        </p>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- ===== ERROR ===== -->
+  <div *ngIf="step === 'error'" class="error-container">
+    <mat-card class="error-card">
+      <mat-card-content>
+        <mat-icon class="error-icon">error</mat-icon>
+        <h2>Une erreur est survenue</h2>
+        <p>{{ errorMessage }}</p>
+        <button mat-raised-button color="primary" (click)="reset()">
+          <mat-icon>refresh</mat-icon> Réessayer
+        </button>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+</div>

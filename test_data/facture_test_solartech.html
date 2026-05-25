@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Facture N° 2026/00428 — SOLARTECH TUNISIE</title>
+<style>
+  @page { size: A4; margin: 14mm 12mm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    font-size: 11pt;
+    color: #222;
+    margin: 0;
+    padding: 18px;
+    background: #fff;
+  }
+
+  /* HEADER */
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    border-bottom: 3px solid #f5b400;
+    padding-bottom: 14px;
+    margin-bottom: 18px;
+  }
+  .brand { display: flex; align-items: center; gap: 14px; }
+  .logo {
+    width: 78px; height: 78px; background: #1a3a6b;
+    border-radius: 14px; display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 3px 10px rgba(26,58,107,.25);
+  }
+  .company-name { font-size: 22pt; font-weight: 800; color: #1a3a6b; letter-spacing: .5px; line-height: 1; }
+  .company-tag  { font-size: 9pt; color: #f5b400; font-weight: 600; letter-spacing: 1.2px; margin-top: 4px; }
+  .company-info { font-size: 8.5pt; color: #555; line-height: 1.5; margin-top: 6px; }
+
+  .doc-meta {
+    border: 2px solid #1a3a6b;
+    border-radius: 8px;
+    padding: 12px 16px;
+    min-width: 240px;
+  }
+  .doc-title { font-size: 22pt; font-weight: 800; color: #1a3a6b; text-align: center; margin: 0 0 8px; letter-spacing: 1px; }
+  .doc-meta table { width: 100%; font-size: 9pt; border-collapse: collapse; }
+  .doc-meta td { padding: 3px 0; }
+  .doc-meta .lbl { color: #777; font-weight: 600; }
+  .doc-meta .val { text-align: right; font-weight: 700; color: #1a3a6b; }
+
+  /* CLIENT BLOCK */
+  .client-block {
+    background: #f7f9fc;
+    border-left: 4px solid #f5b400;
+    padding: 10px 14px;
+    margin-bottom: 18px;
+    border-radius: 0 6px 6px 0;
+  }
+  .client-block .lbl { color: #777; font-size: 9pt; font-weight: 600; margin-bottom: 3px; }
+  .client-block .name { font-size: 13pt; font-weight: 700; color: #1a3a6b; }
+  .client-block .addr { font-size: 9.5pt; color: #555; margin-top: 3px; }
+
+  /* ITEMS TABLE */
+  table.items {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 12px;
+  }
+  table.items thead th {
+    background: #1a3a6b;
+    color: #fff;
+    font-size: 9pt;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    padding: 8px 6px;
+    border: 1px solid #1a3a6b;
+  }
+  table.items tbody td {
+    border: 1px solid #d8dde6;
+    padding: 7px 8px;
+    font-size: 9.5pt;
+    vertical-align: top;
+  }
+  table.items tbody tr:nth-child(even) { background: #fafbfd; }
+  .num { text-align: right; font-variant-numeric: tabular-nums; }
+  .ctr { text-align: center; }
+
+  /* FOOTER TOTALS */
+  .totals-row {
+    display: flex;
+    gap: 14px;
+    margin-top: 8px;
+  }
+  .tva-table, .totals-table {
+    border-collapse: collapse;
+    font-size: 9.5pt;
+  }
+  .tva-table {
+    flex: 0 0 auto;
+  }
+  .tva-table th, .tva-table td {
+    border: 1px solid #d8dde6;
+    padding: 6px 12px;
+  }
+  .tva-table th { background: #f0f3f9; color: #1a3a6b; font-weight: 700; }
+
+  .totals-spacer { flex: 1; }
+
+  .totals-table {
+    flex: 0 0 320px;
+    min-width: 320px;
+  }
+  .totals-table td {
+    padding: 7px 12px;
+    border: 1px solid #d8dde6;
+  }
+  .totals-table td.lbl { background: #f0f3f9; font-weight: 700; color: #1a3a6b; width: 55%; }
+  .totals-table td.val { text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .totals-table tr.grand td.lbl { background: #1a3a6b; color: #fff; font-size: 11pt; }
+  .totals-table tr.grand td.val { background: #fff8d6; color: #1a3a6b; font-size: 13pt; font-weight: 800; }
+
+  .lettre {
+    margin-top: 16px;
+    padding: 10px 14px;
+    background: #fff8d6;
+    border-left: 4px solid #f5b400;
+    font-size: 9.5pt;
+    font-style: italic;
+    color: #333;
+  }
+  .lettre strong { font-style: normal; color: #1a3a6b; }
+
+  .footer {
+    margin-top: 24px;
+    border-top: 2px solid #1a3a6b;
+    padding-top: 10px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 8pt;
+    color: #777;
+  }
+  .signature {
+    text-align: center;
+    margin-top: 30px;
+    font-size: 9pt;
+    color: #555;
+  }
+  .signature .line {
+    width: 180px;
+    border-top: 1px solid #999;
+    margin: 50px auto 6px;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="brand">
+    <div class="logo">
+      <svg width="56" height="56" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="32" cy="32" r="11" fill="#f5b400"/>
+        <g stroke="#f5b400" stroke-width="3" stroke-linecap="round">
+          <line x1="32" y1="6" x2="32" y2="14"/>
+          <line x1="32" y1="50" x2="32" y2="58"/>
+          <line x1="6" y1="32" x2="14" y2="32"/>
+          <line x1="50" y1="32" x2="58" y2="32"/>
+          <line x1="13" y1="13" x2="19" y2="19"/>
+          <line x1="45" y1="45" x2="51" y2="51"/>
+          <line x1="51" y1="13" x2="45" y2="19"/>
+          <line x1="19" y1="45" x2="13" y2="51"/>
+        </g>
+        <path d="M28 28 L34 32 L26 38 L36 36 L30 44" stroke="#1a3a6b" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <div>
+      <div class="company-name">SOLARTECH</div>
+      <div class="company-tag">ÉNERGIE SOLAIRE TUNISIE</div>
+      <div class="company-info">
+        Z.I. Sidi Daoud, Route de la Marsa<br>
+        2046 La Marsa, Tunis — Tunisie<br>
+        Tél: +216 71 234 567 — contact@solartech.tn<br>
+        MF: 1234567/A/B/M/000 — RC: B12345672023
+      </div>
+    </div>
+  </div>
+
+  <div class="doc-meta">
+    <div class="doc-title">FACTURE</div>
+    <table>
+      <tr><td class="lbl">N° Facture</td><td class="val">2026/00428</td></tr>
+      <tr><td class="lbl">Date</td><td class="val">29/04/2026</td></tr>
+      <tr><td class="lbl">Échéance</td><td class="val">29/05/2026</td></tr>
+      <tr><td class="lbl">Code client</td><td class="val">CLT-0089</td></tr>
+      <tr><td class="lbl">Bon de commande</td><td class="val">BC-2026-117</td></tr>
+    </table>
+  </div>
+</div>
+
+<div class="client-block">
+  <div class="lbl">FACTURÉ À</div>
+  <div class="name">M. AHMED BEN SALEM</div>
+  <div class="addr">
+    Avenue Habib Bourguiba, Résidence El Yasmine, Apt B12<br>
+    3000 Sfax — Tunisie<br>
+    Tél: +216 98 765 432 — ahmed.bensalem@gmail.com<br>
+    MF: 9876543/X/A/M/000
+  </div>
+</div>
+
+<table class="items">
+  <thead>
+    <tr>
+      <th style="width:4%">Ord.</th>
+      <th style="width:12%">Référence</th>
+      <th>Désignation</th>
+      <th style="width:6%">Qté</th>
+      <th style="width:10%">P.U. HT</th>
+      <th style="width:6%">Rem. %</th>
+      <th style="width:10%">Net HT</th>
+      <th style="width:6%">TVA %</th>
+      <th style="width:11%">Net TTC</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="ctr">1</td>
+      <td class="ctr">PV-585B</td>
+      <td>Panneaux photovoltaïques Trina Solar 585 Wc Bifacial — Garantie 25 ans</td>
+      <td class="ctr">8</td>
+      <td class="num">580.000</td>
+      <td class="ctr">10</td>
+      <td class="num">4 176.000</td>
+      <td class="ctr">7.00</td>
+      <td class="num">4 468.320</td>
+    </tr>
+    <tr>
+      <td class="ctr">2</td>
+      <td class="ctr">OND-FX5K</td>
+      <td>Onduleur hybride FOXESS H3-Pro 5kW Triphasé — Garantie 10 ans</td>
+      <td class="ctr">1</td>
+      <td class="num">3 250.000</td>
+      <td class="ctr">5</td>
+      <td class="num">3 087.500</td>
+      <td class="ctr">7.00</td>
+      <td class="num">3 303.625</td>
+    </tr>
+    <tr>
+      <td class="ctr">3</td>
+      <td class="ctr">BAT-PYL-5K</td>
+      <td>Batterie lithium Pylontech US5000 4.8 kWh</td>
+      <td class="ctr">2</td>
+      <td class="num">2 850.000</td>
+      <td class="ctr">0</td>
+      <td class="num">5 700.000</td>
+      <td class="ctr">19.00</td>
+      <td class="num">6 783.000</td>
+    </tr>
+    <tr>
+      <td class="ctr">4</td>
+      <td class="ctr">STR-ALU-8</td>
+      <td>Structure aluminium pour 8 panneaux — Toiture inclinée</td>
+      <td class="ctr">1</td>
+      <td class="num">1 250.000</td>
+      <td class="ctr">0</td>
+      <td class="num">1 250.000</td>
+      <td class="ctr">19.00</td>
+      <td class="num">1 487.500</td>
+    </tr>
+    <tr>
+      <td class="ctr">5</td>
+      <td class="ctr">CBL-DC4-50</td>
+      <td>Câble solaire DC 4 mm² rouge/noir (50 m)</td>
+      <td class="ctr">2</td>
+      <td class="num">85.000</td>
+      <td class="ctr">0</td>
+      <td class="num">170.000</td>
+      <td class="ctr">19.00</td>
+      <td class="num">202.300</td>
+    </tr>
+    <tr>
+      <td class="ctr">6</td>
+      <td class="ctr">CBT-AC-DC</td>
+      <td>Coffrets de protection AC + DC complets avec parafoudre</td>
+      <td class="ctr">1</td>
+      <td class="num">620.000</td>
+      <td class="ctr">0</td>
+      <td class="num">620.000</td>
+      <td class="ctr">19.00</td>
+      <td class="num">737.800</td>
+    </tr>
+    <tr>
+      <td class="ctr">7</td>
+      <td class="ctr">SRV-INST</td>
+      <td>Installation, mise en service et configuration monitoring Wi-Fi</td>
+      <td class="ctr">1</td>
+      <td class="num">950.000</td>
+      <td class="ctr">0</td>
+      <td class="num">950.000</td>
+      <td class="ctr">19.00</td>
+      <td class="num">1 130.500</td>
+    </tr>
+    <tr>
+      <td class="ctr">8</td>
+      <td class="ctr">SRV-TRANS</td>
+      <td>Frais de transport et logistique vers Sfax</td>
+      <td class="ctr">1</td>
+      <td class="num">180.000</td>
+      <td class="ctr">0</td>
+      <td class="num">180.000</td>
+      <td class="ctr">7.00</td>
+      <td class="num">192.600</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="totals-row">
+  <table class="tva-table">
+    <thead>
+      <tr>
+        <th>TVA</th>
+        <th>Base TVA</th>
+        <th>Montant TVA</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="num">7.00 %</td>
+        <td class="num">7 443.500</td>
+        <td class="num">521.045</td>
+      </tr>
+      <tr>
+        <td class="num">19.00 %</td>
+        <td class="num">8 690.000</td>
+        <td class="num">1 651.100</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="totals-spacer"></div>
+
+  <table class="totals-table">
+    <tr><td class="lbl">Total HT Brut</td><td class="val">17 105.000 TND</td></tr>
+    <tr><td class="lbl">Total Remise</td><td class="val">−971.500 TND</td></tr>
+    <tr><td class="lbl">Total HT Net</td><td class="val">16 133.500 TND</td></tr>
+    <tr><td class="lbl">Total TVA</td><td class="val">2 172.145 TND</td></tr>
+    <tr><td class="lbl">Timbre fiscal</td><td class="val">1.000 TND</td></tr>
+    <tr class="grand"><td class="lbl">TOTAL TTC</td><td class="val">18 306.645 TND</td></tr>
+  </table>
+</div>
+
+<div class="lettre">
+  Arrêtée la présente facture à la somme de :
+  <strong>dix-huit mille trois cent six dinars tunisiens et six cent quarante-cinq millimes</strong>.
+</div>
+
+<div class="signature">
+  Cachet et signature
+  <div class="line"></div>
+  Mahmoud BEN AMOR — Gérant
+</div>
+
+<div class="footer">
+  <div>
+    SOLARTECH SARL · MF: 1234567/A/B/M/000 · RIB: 04 700 7000 0000 1969 739 (BIAT — La Marsa)
+  </div>
+  <div>
+    Page 1/1 · Document généré le 29/04/2026
+  </div>
+</div>
+
+</body>
+</html>

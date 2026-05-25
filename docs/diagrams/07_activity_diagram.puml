@@ -1,0 +1,78 @@
+@startuml SPARKY_Activity_Diagram
+title Diagramme d'activité — SPARKY
+
+' ─── Mise en page A4 portrait — texte large ───────────────────
+skinparam dpi 96
+skinparam pageMargin 6
+skinparam DefaultFontName "Segoe UI"
+skinparam DefaultFontSize 18
+skinparam TitleFontSize 26
+skinparam TitleFontStyle bold
+skinparam ArrowFontSize 16
+
+' ─── Couleurs claires (pastel) ────────────────────────────────
+skinparam backgroundColor #FFFFFF
+skinparam ActivityBackgroundColor #FFFEF5
+skinparam ActivityBorderColor #555555
+skinparam ActivityBorderThickness 1.5
+skinparam ActivityFontSize 18
+skinparam ActivityDiamondBackgroundColor #FFFFFF
+skinparam ActivityDiamondBorderColor #B8860B
+skinparam ActivityDiamondBorderThickness 1.8
+skinparam ActivityDiamondFontSize 17
+skinparam ArrowColor #555555
+skinparam ArrowThickness 1.5
+
+' ─── Couloirs (3 acteurs, fond pastel) ────────────────────────
+skinparam SwimlaneTitleFontSize 20
+skinparam SwimlaneTitleFontStyle bold
+skinparam SwimlaneTitleFontColor #2C3E50
+skinparam SwimlaneBorderColor #BBBBBB
+skinparam SwimlaneBorderThickness 1.2
+skinparam Padding 4
+skinparam RoundCorner 12
+
+|#D6EAF8|Utilisateur|
+start
+:Se connecter\n(email + mot de passe);
+
+|#FCF3CF|Application SPARKY|
+if (Authentifié ?) then (oui)
+  :Générer un JWT;
+else (non)
+  :Afficher l'erreur;
+  stop
+endif
+
+|#D6EAF8|Utilisateur|
+:Téléverser un document\n(PDF ou image);
+
+|#FCF3CF|Application SPARKY|
+:Stocker le fichier;
+:Classifier le document\n(Mistral AI);
+:Extraire les données\nstructurées (Mistral AI);
+:Enregistrer en base\n(documents + lignes);
+:Notifier n8n;
+
+|#FADBD8|n8n|
+:Préparer le rapport;
+:Ajouter les lignes\ndans Google Sheets;
+:Envoyer un email\nau gestionnaire;
+
+|#FCF3CF|Application SPARKY|
+:Afficher le résultat\n(tableau + classification);
+
+|#D6EAF8|Utilisateur|
+if (Action ?) then (Comparer)
+  :Comparer les prix;
+elseif (Exporter) then (Excel)
+  :Télécharger Excel;
+elseif (Détails) then (Voir)
+  :Consulter le document;
+else (Quitter)
+endif
+
+:Se déconnecter;
+
+stop
+@enduml
