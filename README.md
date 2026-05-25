@@ -164,6 +164,5 @@ Sparky_V2/
 
 ## 👤 Auteur
 
-**Mahmoud Elloumi** — Étudiant ingénieur en informatique  
-mahmoud.elloumi@enis.tn  
+**Yessmine Benhlima** — Étudiante ingénieur en informatique   
 Année universitaire : 2025-2026
